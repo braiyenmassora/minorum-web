@@ -1,35 +1,52 @@
 "use client";
 
-import { Volume2 } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
+import { useSyncExternalStore } from "react";
 
 import { CopyIconButton } from "@/components/chat/copy-icon-button";
+import {
+  getActiveMessageSpeechId,
+  subscribeMessageSpeech,
+  toggleMessageSpeech,
+} from "@/lib/utils/message-speech";
+import { cn } from "@/lib/utils";
 
 type ChatMessageActionsProps = {
+  messageId: string;
   text: string;
 };
 
-export function ChatMessageActions({ text }: ChatMessageActionsProps) {
-  function handleRead() {
-    if (typeof window === "undefined" || !window.speechSynthesis) {
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "id-ID";
-    window.speechSynthesis.speak(utterance);
-  }
+export function ChatMessageActions({
+  messageId,
+  text,
+}: ChatMessageActionsProps) {
+  const activeMessageId = useSyncExternalStore(
+    subscribeMessageSpeech,
+    getActiveMessageSpeechId,
+    () => null,
+  );
+  const isPlaying = activeMessageId === messageId;
 
   return (
     <div className="mt-2 flex items-center gap-1.5">
       <CopyIconButton text={text} label="Salin pesan" />
       <button
         type="button"
-        onClick={handleRead}
-        aria-label="Baca pesan"
-        className="inline-flex size-7 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+        onClick={() => toggleMessageSpeech(messageId, text)}
+        aria-label={isPlaying ? "Berhenti baca pesan" : "Baca pesan"}
+        aria-pressed={isPlaying}
+        className={cn(
+          "inline-flex size-7 items-center justify-center rounded-token-sm transition-colors",
+          isPlaying
+            ? "bg-surface-raised text-text-primary"
+            : "text-text-muted hover:bg-surface-raised hover:text-text-primary",
+        )}
       >
-        <Volume2 className="size-3.5" aria-hidden />
+        {isPlaying ? (
+          <VolumeX className="size-3.5" aria-hidden />
+        ) : (
+          <Volume2 className="size-3.5" aria-hidden />
+        )}
       </button>
     </div>
   );

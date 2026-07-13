@@ -22,7 +22,9 @@ export function scaleDimensions(
   };
 }
 
-export async function prepareImageAttachment(file: File): Promise<PreparedImage> {
+export async function prepareImageAttachment(
+  file: File,
+): Promise<PreparedImage> {
   if (!file.type.startsWith("image/")) {
     throw new Error("Bukan file gambar");
   }

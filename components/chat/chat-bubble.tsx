@@ -1,3 +1,5 @@
+"use client";
+
 import { ChatImage } from "@/components/chat/chat-image";
 import { ChatMarkdown } from "@/components/chat/chat-markdown";
 import { ChatMessageActions } from "@/components/chat/chat-message-actions";
@@ -21,40 +23,44 @@ export function ChatBubble({ message }: ChatBubbleProps) {
     return null;
   }
 
-  return (
+  const imageRow = (
     <div
       className={cn(
-        "flex w-full min-w-0",
+        "flex flex-wrap gap-1.5",
         isUser ? "justify-end" : "justify-start",
       )}
     >
-      <div
-        className={cn(
-          "min-w-0 rounded-token border px-3 py-2 text-token-body",
-          isUser
-            ? "w-fit max-w-[var(--user-bubble-max-width)] border-border-subtle bg-accent-primary text-text-on-accent"
-            : "w-full border-border-subtle bg-surface",
-        )}
-      >
-        {imageUrls.length > 0 ? (
-          <div className={cn("flex flex-wrap gap-1.5", text ? "mb-1" : "")}>
-            {imageUrls.map((url) => (
-              <ChatImage key={url} src={url} size="bubble" />
-            ))}
-          </div>
-        ) : null}
+      {imageUrls.map((url) => (
+        <ChatImage key={url} src={url} size="bubble" />
+      ))}
+    </div>
+  );
 
-        {text ? (
-          isUser ? (
+  if (isUser && !text) {
+    return <div className="flex w-full min-w-0 justify-end">{imageRow}</div>;
+  }
+
+  return (
+    <div
+      className={cn(
+        "flex w-full min-w-0 flex-col gap-2",
+        isUser ? "items-end" : "items-start",
+      )}
+    >
+      {imageUrls.length > 0 ? imageRow : null}
+
+      {text ? (
+        isUser ? (
+          <div className="w-fit max-w-full min-w-0 rounded-token bg-user-bubble px-3 py-2 text-token-body leading-[1.5] text-white">
             <p className="break-words whitespace-pre-wrap">{text}</p>
-          ) : (
-            <>
-              <ChatMarkdown content={text} />
-              <ChatMessageActions text={text} />
-            </>
-          )
-        ) : null}
-      </div>
+          </div>
+        ) : (
+          <div className="w-full min-w-0 text-token-body leading-[1.5] text-text-primary">
+            <ChatMarkdown content={text} />
+            <ChatMessageActions messageId={message.id} text={text} />
+          </div>
+        )
+      ) : null}
     </div>
   );
 }

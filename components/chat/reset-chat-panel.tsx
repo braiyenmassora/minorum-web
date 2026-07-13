@@ -32,7 +32,7 @@ export function ResetChatPanel({
         </button>
         <button
           type="button"
-          className="h-8 flex-1 rounded-token-sm bg-accent-primary text-[length:var(--text-body-medium-size)] text-text-on-accent transition-opacity hover:opacity-90"
+          className="h-8 flex-1 rounded-token-sm bg-user-bubble text-[length:var(--text-body-medium-size)] text-white transition-opacity hover:opacity-90"
           onClick={onConfirm}
         >
           {copy.confirm}

@@ -16,9 +16,6 @@ assert(
     scaleDimensions(800, 600).height === 600,
   "keep small image",
 );
-assert(
-  scaleDimensions(1000, 2000).height === 1536,
-  "scale tall image",
-);
+assert(scaleDimensions(1000, 2000).height === 1536, "scale tall image");
 
 console.log("image-attachment-service checks passed");

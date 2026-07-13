@@ -1,4 +1,7 @@
-import { type AppConfig, validateAppConfig } from "@/lib/core/config/app-config";
+import {
+  type AppConfig,
+  validateAppConfig,
+} from "@/lib/core/config/app-config";
 
 const STORAGE_KEYS = {
   apiBaseUrl: "api_base_url",

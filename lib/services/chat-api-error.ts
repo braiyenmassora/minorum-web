@@ -1,10 +1,5 @@
 export type ChatApiErrorKind =
-  | "auth"
-  | "network"
-  | "server"
-  | "timeout"
-  | "cancelled"
-  | "unknown";
+  "auth" | "network" | "server" | "timeout" | "cancelled" | "unknown";
 
 const USER_MESSAGES: Record<ChatApiErrorKind, string> = {
   auth: "API key/URL salah",

@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "check:app-config": "npx tsx lib/core/config/app-config.check.ts",
     "check:chat-stream": "npx tsx lib/services/chat-stream-parser.check.ts",
     "check:app-copy": "npx tsx lib/core/copy/app-copy.check.ts",
@@ -33,6 +35,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -33,9 +33,7 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
               {children}
             </a>
           ),
-          p: ({ children }) => (
-            <p className="mb-1 last:mb-0">{children}</p>
-          ),
+          p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
           ul: ({ children }) => (
             <ul className="mb-1 list-disc space-y-0.5 pl-4">{children}</ul>
           ),

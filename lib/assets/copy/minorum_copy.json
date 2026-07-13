@@ -4,8 +4,8 @@
     "tagline": "Teman ngobrol yang hangat & sedikit blak-blakan"
   },
   "setup_screen": {
-    "title": "DealWithSign",
-    "subtitle": "",
+    "title": "Minorum",
+    "subtitle": "Teman ngobrol yang hangat & sedikit blak-blakan",
     "api_url_label": "API URL",
     "api_url_hint": "https://api.example.com",
     "api_key_label": "API Key",
@@ -14,7 +14,7 @@
     "model_hint": "Pilih atau ketik nama model",
     "test_connection": "Tes koneksi",
     "test_connection_success": "Koneksi oke!",
-    "save": "Lanjut chat",
+    "save": "Mulai chat",
     "show_api_key": "Tampilkan",
     "hide_api_key": "Sembunyikan"
   },
@@ -55,27 +55,5 @@
   },
   "internal_not_directly_shown": {
     "loading": "Memuat..."
-  },
-  "suggestion_chips": {
-    "original_44": [
-      "Gimana cara mulai habit baru yang nempel?",
-      "Bantu aku bikin rencana belajar minggu ini",
-      "Apa bedanya REST sama GraphQL, jelasin simpel",
-      "Kenapa susah banget fokus belakangan ini?",
-      "Tolong cek grammar pesan ini",
-      "Ide makan malam yang praktis buat 2 orang",
-      "Jelasin compound interest pakai contoh receh",
-      "Gimana cara ngomong 'nggak' tanpa kerasa jutek?"
-    ],
-    "new_50_random_mix": [
-      "Bantu aku nulis caption IG yang nggak cringe",
-      "Apa yang harus dipersiapin sebelum interview kerja?",
-      "Ringkasin artikel panjang jadi 5 poin",
-      "Kenapa laptopku lemot banget ya?",
-      "Bantu brainstorm nama project",
-      "Gimana cara atur keuangan bulanan buat pemula?",
-      "Apa arti impostor syndrome?",
-      "Tips tidur lebih cepat tanpa scrolling"
-    ]
   }
 }

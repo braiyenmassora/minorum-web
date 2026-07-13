@@ -17,7 +17,10 @@ async function proxyRequest(
 ): Promise<NextResponse> {
   const baseUrl = request.headers.get(API_BASE_HEADER);
   if (!baseUrl || !isAllowedBaseUrl(baseUrl)) {
-    return NextResponse.json({ error: "Invalid API base URL" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid API base URL" },
+      { status: 400 },
+    );
   }
 
   const normalizedBase = baseUrl.replace(/\/+$/, "");
@@ -46,7 +49,10 @@ async function proxyRequest(
       body,
     });
   } catch {
-    return NextResponse.json({ error: "Upstream unreachable" }, { status: 502 });
+    return NextResponse.json(
+      { error: "Upstream unreachable" },
+      { status: 502 },
+    );
   }
 
   const responseHeaders = new Headers();

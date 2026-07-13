@@ -1,14 +1,10 @@
 "use client";
 
 import { ArrowUp, ChevronDown, ImageIcon, Plus } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ChatBubble } from "@/components/chat/chat-bubble";
+import { ChatMessageColumn } from "@/components/chat/chat-message-column";
 import { ImagePreviewPanel } from "@/components/chat/image-preview-panel";
 import { ModelPickerPanel } from "@/components/chat/model-picker-panel";
 import { ResetChatPanel } from "@/components/chat/reset-chat-panel";
@@ -18,9 +14,11 @@ import type { AppConfig } from "@/lib/core/config/app-config";
 import { getModelDisplayName } from "@/lib/core/config/model-label";
 import { messageForApiError } from "@/lib/core/copy/api-error-message";
 import { getAppCopy } from "@/lib/core/copy/app-copy";
-import { pickRandomSuggestions } from "@/lib/core/suggestions/suggestion-pool";
 import type { Message } from "@/lib/models/message";
-import { buildUserMessageContent, getMessageText } from "@/lib/models/message-content";
+import {
+  buildUserMessageContent,
+  getMessageText,
+} from "@/lib/models/message-content";
 import { toChatApiError } from "@/lib/services/chat-api-error";
 import { prepareImageAttachment } from "@/lib/services/image-attachment-service";
 import { streamChat } from "@/lib/services/chat-service";
@@ -44,7 +42,6 @@ export function ChatScreen({ config: initialConfig }: ChatScreenProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState(() => pickRandomSuggestions(3));
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const [attachingImage, setAttachingImage] = useState(false);
 
@@ -53,10 +50,6 @@ export function ChatScreen({ config: initialConfig }: ChatScreenProps) {
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const refreshSuggestions = useCallback(() => {
-    setSuggestions(pickRandomSuggestions(3));
-  }, []);
 
   const adjustTextareaHeight = useCallback(() => {
     const textarea = textareaRef.current;
@@ -133,7 +126,9 @@ export function ChatScreen({ config: initialConfig }: ChatScreenProps) {
           signal: abortController.signal,
         })) {
           setMessages((current) => {
-            const assistant = current.find((message) => message.id === assistantId);
+            const assistant = current.find(
+              (message) => message.id === assistantId,
+            );
             if (!assistant) {
               return [
                 ...current,
@@ -202,7 +197,6 @@ export function ChatScreen({ config: initialConfig }: ChatScreenProps) {
     setPendingImage(null);
     setErrorMessage(null);
     setStreaming(false);
-    refreshSuggestions();
     setResetOpen(false);
   }
 
@@ -249,38 +243,32 @@ export function ChatScreen({ config: initialConfig }: ChatScreenProps) {
                   {copy.chat_screen_empty_state.subtitle}
                 </p>
               </div>
-              <div className="flex flex-wrap justify-center gap-1">
-                {suggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    className="max-w-full rounded-token border border-border-subtle bg-surface px-3 py-1.5 text-left text-token-body-medium text-text-primary transition-colors hover:bg-surface-raised"
-                    onClick={() => void handleSend(suggestion)}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
             </div>
           ) : null}
 
-          {messages.map((message, index) => (
-            <div
-              key={message.id}
-              ref={index === messages.length - 1 ? lastMessageRef : undefined}
-              className="scroll-mt-composer-top"
-            >
-              <ChatBubble message={message} />
-            </div>
-          ))}
+          {messages.length > 0 ? (
+            <ChatMessageColumn>
+              {messages.map((message, index) => (
+                <div
+                  key={message.id}
+                  ref={
+                    index === messages.length - 1 ? lastMessageRef : undefined
+                  }
+                  className="scroll-mt-composer-top"
+                >
+                  <ChatBubble message={message} />
+                </div>
+              ))}
 
-          {showTyping ? <TypingIndicator /> : null}
+              {showTyping ? <TypingIndicator /> : null}
+            </ChatMessageColumn>
+          ) : null}
         </div>
       </div>
 
       <div className="inset-screen shrink-0">
         <div className="mx-auto w-full max-w-[var(--chat-max-width)]">
-          <div className="overflow-hidden rounded-token border border-border-subtle bg-surface shadow-floating">
+          <div className="overflow-hidden rounded-token border border-border-subtle bg-assistant-bubble shadow-floating">
             {errorMessage ? (
               <div className="border-b border-border-subtle px-composer py-composer text-token-label text-error">
                 {errorMessage}
@@ -384,7 +372,7 @@ export function ChatScreen({ config: initialConfig }: ChatScreenProps) {
                 className={cn(
                   "inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm transition-colors",
                   canSend
-                    ? "bg-accent-primary text-text-on-accent"
+                    ? "bg-user-bubble text-white"
                     : "bg-disabled-bg text-disabled-text",
                 )}
                 disabled={!canSend}

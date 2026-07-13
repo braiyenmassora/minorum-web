@@ -31,6 +31,8 @@ Reset setup: open `/?reset`
 
 ```bash
 npm run lint          # ESLint
+npm run format        # Prettier (write)
+npm run format:check  # Prettier (check only)
 npm run build         # production build
 npm run start         # run production build locally
 ```

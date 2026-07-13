@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, Link2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 import { AppLogo } from "@/components/ui/app-logo";
@@ -19,13 +19,13 @@ type SetupScreenProps = {
 };
 
 const inputClassName =
-  "h-[var(--field-min-height)] w-full rounded-token border border-border-subtle bg-transparent px-3 text-token-body text-text-primary outline-none placeholder:text-text-muted focus-visible:border-focus-ring focus-visible:ring-1 focus-visible:ring-focus-ring/30 disabled:opacity-50";
+  "h-[var(--field-min-height)] w-full min-w-0 rounded-token border border-border-subtle bg-assistant-bubble px-composer text-token-body text-text-primary outline-none placeholder:text-text-muted focus-visible:border-focus-ring focus-visible:ring-1 focus-visible:ring-focus-ring/40";
 
 const outlineButtonClassName =
-  "inline-flex h-[var(--field-min-height)] flex-1 items-center justify-center gap-2 rounded-token-sm border border-border-subtle text-token-body-medium text-text-secondary transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-50";
+  "inline-flex h-8 min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-token-sm border border-border-subtle text-token-body-medium text-text-secondary transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-50";
 
 const primaryButtonClassName =
-  "inline-flex h-[var(--field-min-height)] flex-1 items-center justify-center rounded-token-sm bg-accent-primary text-token-body-medium text-text-on-accent transition-opacity hover:opacity-90 disabled:opacity-50";
+  "inline-flex h-8 min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-token-sm bg-user-bubble text-token-body-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50";
 
 export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
   const copy = getAppCopy().setup_screen;
@@ -83,35 +83,27 @@ export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
     }
   }
 
+  const statusMessage = errorMessage ?? successMessage;
+
   return (
-    <main className="inset-screen flex flex-1 flex-col justify-center overflow-y-auto">
-      <div className="mx-auto w-full max-w-[var(--chat-max-width)]">
-        <div className="overflow-hidden rounded-token border border-border-subtle bg-surface shadow-floating">
-          <div className="border-b border-border-subtle px-composer py-composer">
-            <div className="mb-3 flex justify-center">
-              <AppLogo size={56} />
+    <main className="inset-screen flex w-full min-w-0 flex-1 flex-col justify-center overflow-y-auto">
+      <div className="screen-shell min-w-0">
+        <div className="setup-form-shell flex flex-col gap-chat-message">
+          <div className="flex flex-col items-center gap-chat-message text-center">
+            <AppLogo size={56} />
+            <div className="flex flex-col gap-0.5">
+              <h1 className="text-token-title font-medium text-text-primary">
+                {copy.title}
+              </h1>
+              {copy.subtitle ? (
+                <p className="text-token-body-medium text-text-secondary">
+                  {copy.subtitle}
+                </p>
+              ) : null}
             </div>
-            <h1 className="text-center text-token-title font-medium">{copy.title}</h1>
-            {copy.subtitle ? (
-              <p className="mt-0.5 text-token-body-medium text-text-secondary">
-                {copy.subtitle}
-              </p>
-            ) : null}
           </div>
 
-          {errorMessage ? (
-            <div className="border-b border-border-subtle px-composer py-composer text-token-label text-error">
-              {errorMessage}
-            </div>
-          ) : null}
-
-          {successMessage ? (
-            <div className="border-b border-border-subtle px-composer py-composer text-token-label text-success">
-              {successMessage}
-            </div>
-          ) : null}
-
-          <div className="flex flex-col gap-chat-message px-composer py-composer">
+          <div className="flex flex-col gap-chat-message">
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="api-url"
@@ -139,10 +131,10 @@ export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
               >
                 {copy.api_key_label}
               </label>
-              <div className="relative">
+              <div className="flex h-[var(--field-min-height)] w-full min-w-0 items-center gap-3 rounded-token border border-border-subtle bg-assistant-bubble px-composer focus-within:border-focus-ring focus-within:ring-1 focus-within:ring-focus-ring/40">
                 <input
                   id="api-key"
-                  className={cn(inputClassName, "pr-10")}
+                  className="min-w-0 flex-1 bg-transparent text-token-body text-text-primary outline-none placeholder:text-text-muted"
                   type={showApiKey ? "text" : "password"}
                   placeholder={copy.api_key_hint}
                   value={apiKey}
@@ -154,14 +146,16 @@ export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
                 />
                 <button
                   type="button"
-                  className="absolute top-1/2 right-1 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+                  className="inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
                   onClick={() => setShowApiKey((value) => !value)}
-                  aria-label={showApiKey ? copy.hide_api_key : copy.show_api_key}
+                  aria-label={
+                    showApiKey ? copy.hide_api_key : copy.show_api_key
+                  }
                 >
                   {showApiKey ? (
-                    <EyeOff className="size-4" />
+                    <EyeOff className="size-[var(--icon-size)]" />
                   ) : (
-                    <Eye className="size-4" />
+                    <Eye className="size-[var(--icon-size)]" />
                   )}
                 </button>
               </div>
@@ -188,23 +182,38 @@ export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
             </div>
           </div>
 
-          <div className="flex gap-3 border-t border-border-subtle px-composer py-composer">
+          {statusMessage ? (
+            <p
+              className={cn(
+                "text-center text-token-label",
+                errorMessage ? "text-error" : "text-success",
+              )}
+            >
+              {statusMessage}
+            </p>
+          ) : null}
+
+          <div className="flex gap-2">
             <button
               type="button"
               className={outlineButtonClassName}
               onClick={() => void handleTestConnection()}
               disabled={testing}
             >
-              <Link2 className="size-4" />
               {testing
                 ? getAppCopy().internal_not_directly_shown.loading
                 : copy.test_connection}
             </button>
             <button
               type="button"
-              className={primaryButtonClassName}
-              onClick={handleSave}
+              className={cn(
+                primaryButtonClassName,
+                !testPassed || testing
+                  ? "bg-disabled-bg text-disabled-text"
+                  : undefined,
+              )}
               disabled={!testPassed || testing}
+              onClick={handleSave}
             >
               {copy.save}
             </button>

@@ -12,19 +12,23 @@ function assert(condition: boolean, message: string): void {
 }
 
 assert(
-  normalizeApiBaseUrl("https://api.example.com/") === "https://api.example.com/v1",
+  normalizeApiBaseUrl("https://api.example.com/") ===
+    "https://api.example.com/v1",
   "trailing slash",
 );
 assert(
-  normalizeApiBaseUrl("https://api.example.com") === "https://api.example.com/v1",
+  normalizeApiBaseUrl("https://api.example.com") ===
+    "https://api.example.com/v1",
   "no v1 suffix",
 );
 assert(
-  normalizeApiBaseUrl("https://api.example.com/v1") === "https://api.example.com/v1",
+  normalizeApiBaseUrl("https://api.example.com/v1") ===
+    "https://api.example.com/v1",
   "existing v1",
 );
 assert(
-  buildModelsUrl("https://api.example.com") === "https://api.example.com/v1/models",
+  buildModelsUrl("https://api.example.com") ===
+    "https://api.example.com/v1/models",
   "models url",
 );
 assert(
@@ -46,7 +50,10 @@ const valid = validateAppConfig({
   apiKey: "sk-test",
   modelName: "auto",
 });
-assert(valid.apiBaseUrl === "https://api.example.com/v1", "validate normalizes url");
+assert(
+  valid.apiBaseUrl === "https://api.example.com/v1",
+  "validate normalizes url",
+);
 assert(valid.apiKey === "sk-test", "validate keeps api key");
 assert(valid.modelName === "auto", "validate keeps model");
 

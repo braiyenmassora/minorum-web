@@ -25,7 +25,11 @@ const second = parser.flush();
 assert(second.length === 0, "parser flush after complete input");
 
 const splitParser = new ChatStreamParser();
-assert(splitParser.push('data: {"choices":[{"delta":{"content":"A"}}]}\n').length === 0, "wait for block boundary");
+assert(
+  splitParser.push('data: {"choices":[{"delta":{"content":"A"}}]}\n').length ===
+    0,
+  "wait for block boundary",
+);
 assert(splitParser.push("\n").join("") === "A", "complete split block");
 
 console.log("chat-stream-parser checks passed");

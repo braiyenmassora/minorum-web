@@ -165,7 +165,9 @@ async function* streamChatAttempt({
         break;
       }
 
-      for (const token of parser.push(decoder.decode(value, { stream: true }))) {
+      for (const token of parser.push(
+        decoder.decode(value, { stream: true }),
+      )) {
         yield token;
       }
     }
@@ -195,8 +197,7 @@ export async function* streamChat({
       return;
     } catch (error) {
       const apiError = toChatApiError(error);
-      const canRetry =
-        isRetryableKind(apiError.kind) && attempt < MAX_RETRIES;
+      const canRetry = isRetryableKind(apiError.kind) && attempt < MAX_RETRIES;
 
       if (!canRetry) {
         throw apiError;

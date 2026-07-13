@@ -4,15 +4,15 @@
 
 **Minorum** adalah client chat AI pribadi dengan persona hangat, casual, dan semi-blak-blakan (bahasa Indonesia sehari-hari). Aplikasi saat ini adalah **Flutter Android** yang terhubung ke **API OpenAI-compatible** (mis. 9Router self-hosted). Kredensial (URL, API key, model) disimpan **hanya di perangkat** — tidak ada backend bawaan.
 
-| Aspek | Detail |
-|-------|--------|
-| **Nama** | Minorum |
-| **Versi** | 1.0.0+1 |
-| **Platform saat ini** | Android (API 21+) |
-| **Target web** | Belum ada — brief ini untuk porting |
-| **Bahasa UI** | Indonesia (casual) |
-| **Tema** | Dark only, Material 3 |
-| **Package** | `com.dealwithsign.minorum` |
+| Aspek                 | Detail                              |
+| --------------------- | ----------------------------------- |
+| **Nama**              | Minorum                             |
+| **Versi**             | 1.0.0+1                             |
+| **Platform saat ini** | Android (API 21+)                   |
+| **Target web**        | Belum ada — brief ini untuk porting |
+| **Bahasa UI**         | Indonesia (casual)                  |
+| **Tema**              | Dark only, Material 3               |
+| **Package**           | `com.dealwithsign.minorum`          |
 
 ---
 
@@ -66,18 +66,18 @@ test/                        # Unit tests
 
 ## 3. Fitur Utama (untuk parity web)
 
-| Fitur | Status Android | Catatan untuk Web |
-|-------|----------------|-------------------|
-| Setup API URL + Key + Model | ✅ | Ganti `flutter_secure_storage` → `localStorage` / `sessionStorage` / IndexedDB |
-| Test koneksi (`GET /v1/models`) | ✅ | Sama |
-| Streaming chat (`POST /v1/chat/completions`) | ✅ | `fetch` + `ReadableStream` / SSE parser |
-| Vision (gambar base64) | ✅ | `<input type="file">` + FileReader |
-| Markdown + link klik | ✅ | `react-markdown` / `marked` + linkify |
-| Model picker (bottom sheet) | ✅ | Modal / drawer |
-| Reset chat | ✅ | State in-memory saja |
-| Suggestion chips | ✅ | Load dari JSON yang sama |
-| Persona system prompt | ✅ | Port string dari `minorum_persona.dart` |
-| Dark theme only | ✅ | CSS variables dari design tokens |
+| Fitur                                        | Status Android | Catatan untuk Web                                                              |
+| -------------------------------------------- | -------------- | ------------------------------------------------------------------------------ |
+| Setup API URL + Key + Model                  | ✅             | Ganti `flutter_secure_storage` → `localStorage` / `sessionStorage` / IndexedDB |
+| Test koneksi (`GET /v1/models`)              | ✅             | Sama                                                                           |
+| Streaming chat (`POST /v1/chat/completions`) | ✅             | `fetch` + `ReadableStream` / SSE parser                                        |
+| Vision (gambar base64)                       | ✅             | `<input type="file">` + FileReader                                             |
+| Markdown + link klik                         | ✅             | `react-markdown` / `marked` + linkify                                          |
+| Model picker (bottom sheet)                  | ✅             | Modal / drawer                                                                 |
+| Reset chat                                   | ✅             | State in-memory saja                                                           |
+| Suggestion chips                             | ✅             | Load dari JSON yang sama                                                       |
+| Persona system prompt                        | ✅             | Port string dari `minorum_persona.dart`                                        |
+| Dark theme only                              | ✅             | CSS variables dari design tokens                                               |
 
 ---
 
@@ -105,7 +105,10 @@ Base URL dinormalisasi: trailing slash dihapus, `/v1` ditambahkan jika belum ada
       "role": "user",
       "content": [
         { "type": "text", "text": "..." },
-        { "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,..." } }
+        {
+          "type": "image_url",
+          "image_url": { "url": "data:image/jpeg;base64,..." }
+        }
       ]
     }
   ]
@@ -118,13 +121,13 @@ Parser memproses blok `data: {...}\n\n`, mengekstrak `choices[0].delta.content`.
 
 ### Error handling
 
-| Kind | HTTP | Pesan user (ID) |
-|------|------|-----------------|
-| auth | 401/403 | API key/URL salah |
-| network | SocketException | Koneksi putus |
-| server | 5xx | Server rewel |
-| timeout | — | Kelamaan nunggu |
-| cancelled | — | (silent) |
+| Kind      | HTTP            | Pesan user (ID)   |
+| --------- | --------------- | ----------------- |
+| auth      | 401/403         | API key/URL salah |
+| network   | SocketException | Koneksi putus     |
+| server    | 5xx             | Server rewel      |
+| timeout   | —               | Kelamaan nunggu   |
+| cancelled | —               | (silent)          |
 
 ---
 
@@ -132,29 +135,29 @@ Parser memproses blok `data: {...}\n\n`, mengekstrak `choices[0].delta.content`.
 
 ### Flutter (saat ini)
 
-| Package | Versi | Fungsi |
-|---------|-------|--------|
-| `flutter` | SDK | Framework |
-| `http` | ^1.2.0 | HTTP + SSE streaming |
-| `image_picker` | ^1.1.2 | Kamera/galeri |
-| `flutter_markdown` | ^0.7.7+1 | Render markdown |
-| `permission_handler` | ^11.3.1 | Izin kamera/galeri |
-| `flutter_secure_storage` | ^9.2.4 | Simpan config aman |
-| `line_icons` | ^2.0.3 | Ikon (Feather-style) |
-| `url_launcher` | ^6.3.1 | Buka link eksternal |
+| Package                  | Versi    | Fungsi               |
+| ------------------------ | -------- | -------------------- |
+| `flutter`                | SDK      | Framework            |
+| `http`                   | ^1.2.0   | HTTP + SSE streaming |
+| `image_picker`           | ^1.1.2   | Kamera/galeri        |
+| `flutter_markdown`       | ^0.7.7+1 | Render markdown      |
+| `permission_handler`     | ^11.3.1  | Izin kamera/galeri   |
+| `flutter_secure_storage` | ^9.2.4   | Simpan config aman   |
+| `line_icons`             | ^2.0.3   | Ikon (Feather-style) |
+| `url_launcher`           | ^6.3.1   | Buka link eksternal  |
 
 ### Rekomendasi stack Web
 
-| Kategori | Rekomendasi | Alasan |
-|----------|-------------|--------|
-| **Framework** | React + Vite / Next.js / SvelteKit | Ekosistem matang, SSR opsional |
-| **Styling** | Tailwind CSS + CSS variables | Mapping langsung dari design tokens |
-| **Font** | `@fontsource/geist` atau self-host TTF | Match dengan Flutter |
-| **Markdown** | `react-markdown` + `remark-gfm` | Parity dengan `flutter_markdown` |
-| **HTTP/SSE** | Native `fetch` + custom SSE parser | Port logic dari `chat_stream_parser.dart` |
-| **Storage** | `localStorage` (dev) / Web Crypto API | Ganti `flutter_secure_storage` |
-| **Icons** | `react-icons/fi` (Feather) atau Line Icons web | Match `LineIcons.*` |
-| **File upload** | `<input type="file" accept="image/*">` | Ganti `image_picker` |
+| Kategori        | Rekomendasi                                    | Alasan                                    |
+| --------------- | ---------------------------------------------- | ----------------------------------------- |
+| **Framework**   | React + Vite / Next.js / SvelteKit             | Ekosistem matang, SSR opsional            |
+| **Styling**     | Tailwind CSS + CSS variables                   | Mapping langsung dari design tokens       |
+| **Font**        | `@fontsource/geist` atau self-host TTF         | Match dengan Flutter                      |
+| **Markdown**    | `react-markdown` + `remark-gfm`                | Parity dengan `flutter_markdown`          |
+| **HTTP/SSE**    | Native `fetch` + custom SSE parser             | Port logic dari `chat_stream_parser.dart` |
+| **Storage**     | `localStorage` (dev) / Web Crypto API          | Ganti `flutter_secure_storage`            |
+| **Icons**       | `react-icons/fi` (Feather) atau Line Icons web | Match `LineIcons.*`                       |
+| **File upload** | `<input type="file" accept="image/*">`         | Ganti `image_picker`                      |
 
 ---
 
@@ -168,29 +171,29 @@ Sumber: `lib/core/theme/app_theme.dart`. Untuk web, ekspor sebagai CSS custom pr
 :root {
   /* Background & Surface */
   --color-background: #000000;
-  --color-surface: #0A0A0A;
+  --color-surface: #0a0a0a;
   --color-surface-raised: #141414;
-  --color-border: #1A1A1A;
+  --color-border: #1a1a1a;
   --color-border-subtle: #121212;
 
   /* Text */
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #A1A1A1;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1a1;
   --color-text-muted: #707070;
   --color-text-on-accent: #000000;
 
   /* Accent & Interactive */
-  --color-accent-primary: #FFFFFF;
-  --color-focus-ring: #0070F3;
+  --color-accent-primary: #ffffff;
+  --color-focus-ring: #0070f3;
 
   /* Semantic */
-  --color-success: #2ECC71;
-  --color-warning: #F5A623;
-  --color-error: #FF4D4F;
+  --color-success: #2ecc71;
+  --color-warning: #f5a623;
+  --color-error: #ff4d4f;
 
   /* Disabled */
-  --color-disabled-bg: #1A1A1A;
-  --color-disabled-text: #4D4D4D;
+  --color-disabled-bg: #1a1a1a;
+  --color-disabled-text: #4d4d4d;
 
   /* Overlay / Splash */
   --color-splash: rgba(255, 255, 255, 0.08);
@@ -203,22 +206,22 @@ Sumber: `lib/core/theme/app_theme.dart`. Untuk web, ekspor sebagai CSS custom pr
 
 ### 6.2 Typography
 
-| Token | Font | Size | Weight | Line Height | Letter Spacing |
-|-------|------|------|--------|-------------|----------------|
-| `displayLarge` | Geist | 32px | 500 | 1.15 | -1.28px |
-| `titleLarge` | Geist | 24px | 500 | 1.2 | -0.48px |
-| `titleSmall` | Geist | 20px | 500 | 1.25 | 0 |
-| `titleMedium` | Geist | 17px | 500 | 1.3 | 0 |
-| `bodyLarge` | Geist | 15px | 400 | 1.5 | 0 |
-| `bodyMedium` | Geist | 13px | 400 | 1.4 | 0 |
-| `labelLarge` | Geist | 15px | 500 | 1.5 | 0 |
-| `labelSmall` | Geist | 11px | 400 | 1.3 | 0 |
-| **Mono** | Geist Mono | — | 400/500 | — | Code blocks |
+| Token          | Font       | Size | Weight  | Line Height | Letter Spacing |
+| -------------- | ---------- | ---- | ------- | ----------- | -------------- |
+| `displayLarge` | Geist      | 32px | 500     | 1.15        | -1.28px        |
+| `titleLarge`   | Geist      | 24px | 500     | 1.2         | -0.48px        |
+| `titleSmall`   | Geist      | 20px | 500     | 1.25        | 0              |
+| `titleMedium`  | Geist      | 17px | 500     | 1.3         | 0              |
+| `bodyLarge`    | Geist      | 15px | 400     | 1.5         | 0              |
+| `bodyMedium`   | Geist      | 13px | 400     | 1.4         | 0              |
+| `labelLarge`   | Geist      | 15px | 500     | 1.5         | 0              |
+| `labelSmall`   | Geist      | 11px | 400     | 1.3         | 0              |
+| **Mono**       | Geist Mono | —    | 400/500 | —           | Code blocks    |
 
 ```css
 :root {
-  --font-sans: 'Geist', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
 }
 ```
 
@@ -278,36 +281,36 @@ Semua komponen pill menggunakan **16px** (chip, bubble, card, input, field, shee
 
 ### 6.7 Komponen patterns
 
-| Komponen | Style |
-|----------|-------|
-| **PillAction** | `surface` (default) atau `primary` (CTA), border `border-subtle`, radius 16px, min-height 48px |
-| **PillInputContainer** | Surface bg, border subtle, radius 16px |
-| **User bubble** | `accent-primary` bg, `text-on-accent`, align right, max 82% |
-| **Assistant bubble** | `surface` bg, border subtle, align left, full width |
-| **Link di markdown** | `focus-ring` (#0070F3) |
-| **Send button** | Filled white saat aktif, `disabled-bg` saat nonaktif |
-| **Bottom sheet** | Surface, drag handle, border top radius 16px |
-| **Snackbar** | `surface-raised`, floating, border subtle |
+| Komponen               | Style                                                                                          |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| **PillAction**         | `surface` (default) atau `primary` (CTA), border `border-subtle`, radius 16px, min-height 48px |
+| **PillInputContainer** | Surface bg, border subtle, radius 16px                                                         |
+| **User bubble**        | `accent-primary` bg, `text-on-accent`, align right, max 82%                                    |
+| **Assistant bubble**   | `surface` bg, border subtle, align left, full width                                            |
+| **Link di markdown**   | `focus-ring` (#0070F3)                                                                         |
+| **Send button**        | Filled white saat aktif, `disabled-bg` saat nonaktif                                           |
+| **Bottom sheet**       | Surface, drag handle, border top radius 16px                                                   |
+| **Snackbar**           | `surface-raised`, floating, border subtle                                                      |
 
 ---
 
 ## 7. Inventori Komponen UI
 
-| Widget Flutter | Fungsi | Equivalent Web |
-|----------------|--------|----------------|
-| `ScreenHeader` | Header 56px + safe area | `<header>` fixed |
-| `ScreenBottomBar` | Input bar + border top | `<footer>` sticky |
-| `ScreenIntro` | Avatar + title + subtitle | Hero section |
-| `PillAction` | Button/chip pill | `<button class="pill">` |
-| `PillInputContainer` | Wrapper input pill | Input group |
-| `ChatBubble` | User/assistant message | Message component |
-| `ChatMarkdown` | Markdown renderer | `react-markdown` |
-| `TypingIndicator` | Loading dots | CSS animation |
-| `ActionBottomSheet` | Konfirmasi reset | Modal |
-| `ModelPickerSheet` | Pilih model | Modal list |
-| `AttachImageSheet` | Kamera/galeri | File picker modal |
-| `ChatImage` | Preview gambar | `<img>` rounded |
-| `AppSnackBar` | Toast error/success | Toast component |
+| Widget Flutter       | Fungsi                    | Equivalent Web          |
+| -------------------- | ------------------------- | ----------------------- |
+| `ScreenHeader`       | Header 56px + safe area   | `<header>` fixed        |
+| `ScreenBottomBar`    | Input bar + border top    | `<footer>` sticky       |
+| `ScreenIntro`        | Avatar + title + subtitle | Hero section            |
+| `PillAction`         | Button/chip pill          | `<button class="pill">` |
+| `PillInputContainer` | Wrapper input pill        | Input group             |
+| `ChatBubble`         | User/assistant message    | Message component       |
+| `ChatMarkdown`       | Markdown renderer         | `react-markdown`        |
+| `TypingIndicator`    | Loading dots              | CSS animation           |
+| `ActionBottomSheet`  | Konfirmasi reset          | Modal                   |
+| `ModelPickerSheet`   | Pilih model               | Modal list              |
+| `AttachImageSheet`   | Kamera/galeri             | File picker modal       |
+| `ChatImage`          | Preview gambar            | `<img>` rounded         |
+| `AppSnackBar`        | Toast error/success       | Toast component         |
 
 ### Ikon yang dipakai (Line Icons → Feather equivalent)
 
@@ -390,34 +393,34 @@ Desktop (≥768px): Max-width ~720px centered, atau sidebar untuk settings
 
 ## 11. File yang Bisa Di-reuse Langsung
 
-| Asset / Logic | Path | Reuse |
-|---------------|------|-------|
-| Copy JSON | `assets/copy/minorum_copy.json` | ✅ 100% |
-| Persona prompt | `lib/core/persona/minorum_persona.dart` | ✅ Copy string |
-| Design tokens | `lib/core/theme/app_theme.dart` | ✅ Export ke CSS |
-| SSE parser logic | `lib/services/chat_stream_parser.dart` | ✅ Port ke TS |
-| API error classification | `lib/services/chat_api_error.dart` | ✅ Port ke TS |
-| Fonts Geist | `assets/fonts/` | ✅ Self-host |
-| Avatar | `assets/icon/x.jpeg` | ✅ |
+| Asset / Logic            | Path                                    | Reuse            |
+| ------------------------ | --------------------------------------- | ---------------- |
+| Copy JSON                | `assets/copy/minorum_copy.json`         | ✅ 100%          |
+| Persona prompt           | `lib/core/persona/minorum_persona.dart` | ✅ Copy string   |
+| Design tokens            | `lib/core/theme/app_theme.dart`         | ✅ Export ke CSS |
+| SSE parser logic         | `lib/services/chat_stream_parser.dart`  | ✅ Port ke TS    |
+| API error classification | `lib/services/chat_api_error.dart`      | ✅ Port ke TS    |
+| Fonts Geist              | `assets/fonts/`                         | ✅ Self-host     |
+| Avatar                   | `assets/icon/x.jpeg`                    | ✅               |
 
 ---
 
 ## 12. Referensi Kode Sumber
 
-| Area | File utama |
-|------|------------|
-| Entry point | `lib/main.dart` |
-| Routing / gate | `lib/screens/app_gate.dart` |
-| Setup | `lib/screens/setup_screen.dart` |
-| Chat | `lib/screens/chat_screen.dart` |
-| API client | `lib/services/chat_service.dart` |
-| SSE parser | `lib/services/chat_stream_parser.dart` |
-| Error handling | `lib/services/chat_api_error.dart` |
-| Config storage | `lib/services/config_storage_service.dart` |
-| Image attach | `lib/services/image_attachment_service.dart` |
-| Design system | `lib/core/theme/app_theme.dart` |
-| UI copy | `lib/core/copy/app_copy.dart` + `assets/copy/minorum_copy.json` |
-| Persona | `lib/core/persona/minorum_persona.dart` |
+| Area           | File utama                                                      |
+| -------------- | --------------------------------------------------------------- |
+| Entry point    | `lib/main.dart`                                                 |
+| Routing / gate | `lib/screens/app_gate.dart`                                     |
+| Setup          | `lib/screens/setup_screen.dart`                                 |
+| Chat           | `lib/screens/chat_screen.dart`                                  |
+| API client     | `lib/services/chat_service.dart`                                |
+| SSE parser     | `lib/services/chat_stream_parser.dart`                          |
+| Error handling | `lib/services/chat_api_error.dart`                              |
+| Config storage | `lib/services/config_storage_service.dart`                      |
+| Image attach   | `lib/services/image_attachment_service.dart`                    |
+| Design system  | `lib/core/theme/app_theme.dart`                                 |
+| UI copy        | `lib/core/copy/app_copy.dart` + `assets/copy/minorum_copy.json` |
+| Persona        | `lib/core/persona/minorum_persona.dart`                         |
 
 ---
 
@@ -463,8 +466,8 @@ Salin ke `web/src/styles/tokens.css` (atau `app/globals.css`) dan import di entr
   --color-hover-overlay: rgba(255, 255, 255, 0.06);
 
   /* Typography */
-  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'Cascadia Code', monospace;
+  --font-sans: "Geist", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Code", monospace;
 
   --text-display-large-size: 32px;
   --text-display-large-weight: 500;
@@ -693,7 +696,7 @@ Salin ke `web/tokens.json` untuk tooling (Style Dictionary, Tailwind `theme.exte
 ### Contoh mapping Tailwind (`tailwind.config.ts`)
 
 ```ts
-import tokens from './tokens.json';
+import tokens from "./tokens.json";
 
 export default {
   theme: {
@@ -701,17 +704,21 @@ export default {
       colors: {
         background: tokens.color.background.value,
         surface: tokens.color.surface.value,
-        'surface-raised': tokens.color['surface-raised'].value,
-        'border-subtle': tokens.color['border-subtle'].value,
-        'text-primary': tokens.color['text-primary'].value,
-        'text-secondary': tokens.color['text-secondary'].value,
-        'text-muted': tokens.color['text-muted'].value,
-        'focus-ring': tokens.color['focus-ring'].value,
+        "surface-raised": tokens.color["surface-raised"].value,
+        "border-subtle": tokens.color["border-subtle"].value,
+        "text-primary": tokens.color["text-primary"].value,
+        "text-secondary": tokens.color["text-secondary"].value,
+        "text-muted": tokens.color["text-muted"].value,
+        "focus-ring": tokens.color["focus-ring"].value,
         error: tokens.color.error.value,
       },
       fontFamily: {
-        sans: tokens.font.sans.value.split(',').map((f) => f.trim().replace(/'/g, '')),
-        mono: tokens.font.mono.value.split(',').map((f) => f.trim().replace(/'/g, '')),
+        sans: tokens.font.sans.value
+          .split(",")
+          .map((f) => f.trim().replace(/'/g, "")),
+        mono: tokens.font.mono.value
+          .split(",")
+          .map((f) => f.trim().replace(/'/g, "")),
       },
       borderRadius: {
         pill: tokens.borderRadius.standard.value,
@@ -725,7 +732,7 @@ export default {
         xxl: tokens.spacing.xxl.value,
       },
       maxWidth: {
-        chat: tokens.size['chat-max-width'].value,
+        chat: tokens.size["chat-max-width"].value,
       },
     },
   },
@@ -852,20 +859,20 @@ function App() {
 
 ### Port priority per file
 
-| Urutan | File TS | Sumber Dart | Prioritas |
-|--------|---------|-------------|-----------|
-| 1 | `app-config.ts` | `app_config.dart` | MVP |
-| 2 | `config-storage-service.ts` | `config_storage_service.dart` | MVP |
-| 3 | `chat-api-error.ts` | `chat_api_error.dart` | MVP |
-| 4 | `chat-stream-parser.ts` | `chat_stream_parser.dart` | MVP |
-| 5 | `chat-service.ts` | `chat_service.dart` | MVP |
-| 6 | `app-copy.ts` | `app_copy.dart` | MVP |
-| 7 | `minorum-persona.ts` | `minorum_persona.dart` | MVP |
-| 8 | `suggestion-pool.ts` | `suggestion_pool.dart` | MVP |
-| 9 | `setup-screen.tsx` | `setup_screen.dart` | MVP |
-| 10 | `chat-screen.tsx` | `chat_screen.dart` | MVP |
-| 11 | `chat-markdown.tsx` | `chat_markdown.dart` | MVP |
-| 12 | `image-attachment-service.ts` | `image_attachment_service.dart` | Fase 2 |
+| Urutan | File TS                       | Sumber Dart                     | Prioritas |
+| ------ | ----------------------------- | ------------------------------- | --------- |
+| 1      | `app-config.ts`               | `app_config.dart`               | MVP       |
+| 2      | `config-storage-service.ts`   | `config_storage_service.dart`   | MVP       |
+| 3      | `chat-api-error.ts`           | `chat_api_error.dart`           | MVP       |
+| 4      | `chat-stream-parser.ts`       | `chat_stream_parser.dart`       | MVP       |
+| 5      | `chat-service.ts`             | `chat_service.dart`             | MVP       |
+| 6      | `app-copy.ts`                 | `app_copy.dart`                 | MVP       |
+| 7      | `minorum-persona.ts`          | `minorum_persona.dart`          | MVP       |
+| 8      | `suggestion-pool.ts`          | `suggestion_pool.dart`          | MVP       |
+| 9      | `setup-screen.tsx`            | `setup_screen.dart`             | MVP       |
+| 10     | `chat-screen.tsx`             | `chat_screen.dart`              | MVP       |
+| 11     | `chat-markdown.tsx`           | `chat_markdown.dart`            | MVP       |
+| 12     | `image-attachment-service.ts` | `image_attachment_service.dart` | Fase 2    |
 
 ### Catatan implementasi
 
