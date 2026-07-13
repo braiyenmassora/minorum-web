@@ -1,0 +1,96 @@
+/* Verminal — Hyper terminal theme (vernondegoede/verminal) */
+.verminal-code pre {
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  font-family:
+    "SF Mono", Monaco, Inconsolata, "Fira Mono", "Droid Sans Mono",
+    "Source Code Pro", var(--font-mono), monospace;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.verminal-code pre::-webkit-scrollbar {
+  height: 3px;
+}
+
+.verminal-code pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.verminal-code pre::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+.verminal-code pre:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.verminal-code .hljs {
+  background: transparent;
+  color: #ffffff;
+}
+
+.verminal-code .hljs-comment,
+.verminal-code .hljs-quote {
+  color: #686868;
+  font-style: italic;
+}
+
+.verminal-code .hljs-keyword,
+.verminal-code .hljs-selector-tag,
+.verminal-code .hljs-built_in,
+.verminal-code .hljs-name {
+  color: #ff2d55;
+}
+
+.verminal-code .hljs-string,
+.verminal-code .hljs-regexp,
+.verminal-code .hljs-addition {
+  color: #4cd964;
+}
+
+.verminal-code .hljs-number,
+.verminal-code .hljs-literal {
+  color: #5ac8fa;
+}
+
+.verminal-code .hljs-title,
+.verminal-code .hljs-section,
+.verminal-code .hljs-function .hljs-title {
+  color: #0095ff;
+}
+
+.verminal-code .hljs-type,
+.verminal-code .hljs-class .hljs-title,
+.verminal-code .hljs-attr,
+.verminal-code .hljs-variable,
+.verminal-code .hljs-template-variable,
+.verminal-code .hljs-attribute {
+  color: #ffcc00;
+}
+
+.verminal-code .hljs-symbol,
+.verminal-code .hljs-bullet,
+.verminal-code .hljs-link {
+  color: #ff3b30;
+}
+
+.verminal-code .hljs-meta,
+.verminal-code .hljs-subst,
+.verminal-code .hljs-selector-id,
+.verminal-code .hljs-selector-class {
+  color: #ffffff;
+}
+
+.verminal-code .hljs-deletion {
+  color: #ff3b30;
+}
+
+.verminal-code .hljs-emphasis {
+  font-style: italic;
+}
+
+.verminal-code .hljs-strong {
+  font-weight: 700;
+}

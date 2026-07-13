@@ -1,6 +1,6 @@
 "use client";
 
-import { Volume2, VolumeX } from "lucide-react";
+import { Square, Volume2 } from "lucide-react";
 import { useSyncExternalStore } from "react";
 
 import { CopyIconButton } from "@/components/chat/copy-icon-button";
@@ -43,7 +43,7 @@ export function ChatMessageActions({
         )}
       >
         {isPlaying ? (
-          <VolumeX className="size-3.5" aria-hidden />
+          <Square className="size-3 fill-current" aria-hidden />
         ) : (
           <Volume2 className="size-3.5" aria-hidden />
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Children, isValidElement, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -11,10 +11,31 @@ type ChatMarkdownProps = {
   content: string;
 };
 
-function MarkdownPre({ children }: { children?: ReactNode }) {
-  const code = extractNodeText(children).replace(/\n$/, "");
+function extractCodeBlock(children: ReactNode): {
+  code: string;
+  language?: string;
+} {
+  const child = Children.toArray(children)[0];
 
-  return <CodeBlock code={code}>{children}</CodeBlock>;
+  if (isValidElement<{ className?: string; children?: ReactNode }>(child)) {
+    const className = child.props.className ?? "";
+    const match = /language-([\w-]+)/.exec(className);
+
+    return {
+      code: extractNodeText(child).replace(/\n$/, ""),
+      language: match?.[1],
+    };
+  }
+
+  return {
+    code: extractNodeText(children).replace(/\n$/, ""),
+  };
+}
+
+function MarkdownPre({ children }: { children?: ReactNode }) {
+  const { code, language } = extractCodeBlock(children);
+
+  return <CodeBlock code={code} language={language} />;
 }
 
 export function ChatMarkdown({ content }: ChatMarkdownProps) {
@@ -48,7 +69,7 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
             }
 
             return (
-              <code className="rounded-token-sm bg-surface-raised px-1 py-0.5 font-mono text-[0.9em]">
+              <code className="rounded-token-sm bg-black/65 px-1 py-0.5 font-mono text-[0.9em] text-white">
                 {children}
               </code>
             );
