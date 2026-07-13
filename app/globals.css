@@ -1,26 +1,381 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Minorum design tokens — source of truth (project-brief section 13) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-background: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-raised: #141414;
+  --color-border: #1a1a1a;
+  --color-border-subtle: #121212;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1a1;
+  --color-text-muted: #707070;
+  --color-text-on-accent: #000000;
+
+  --color-accent-primary: #ffffff;
+  --color-focus-ring: #0070f3;
+
+  --color-success: #2ecc71;
+  --color-warning: #f5a623;
+  --color-error: #ff4d4f;
+
+  --color-disabled-bg: #1a1a1a;
+  --color-disabled-text: #4d4d4d;
+
+  --color-splash: rgba(255, 255, 255, 0.08);
+  --color-highlight: rgba(255, 255, 255, 0.08);
+  --color-focus-overlay: rgba(0, 112, 243, 0.08);
+  --color-pressed-overlay: rgba(255, 255, 255, 0.12);
+  --color-hover-overlay: rgba(255, 255, 255, 0.06);
+
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", monospace;
+
+  --text-display-large-size: 32px;
+  --text-display-large-weight: 500;
+  --text-display-large-line-height: 1.15;
+  --text-display-large-letter-spacing: -1.28px;
+
+  --text-title-large-size: 24px;
+  --text-title-large-weight: 500;
+  --text-title-large-line-height: 1.2;
+  --text-title-large-letter-spacing: -0.48px;
+
+  --text-title-small-size: 20px;
+  --text-title-small-weight: 500;
+  --text-title-small-line-height: 1.25;
+
+  --text-title-medium-size: 17px;
+  --text-title-medium-weight: 500;
+  --text-title-medium-line-height: 1.3;
+
+  --text-body-large-size: 15px;
+  --text-body-large-weight: 400;
+  --text-body-large-line-height: 1.5;
+
+  --text-body-medium-size: 13px;
+  --text-body-medium-weight: 400;
+  --text-body-medium-line-height: 1.45;
+
+  --text-label-large-size: 15px;
+  --text-label-large-weight: 500;
+  --text-label-large-line-height: 1.5;
+
+  --text-label-small-size: 12px;
+  --text-label-small-weight: 400;
+  --text-label-small-line-height: 1.35;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+  --spacing-field-y: 12px;
+
+  --radius-standard: 10px;
+  --radius-sm: 7px;
+  --radius-md: 9px;
+  --radius-sheet-top: 10px 10px 0 0;
+
+  --header-height: 56px;
+  --button-height: 48px;
+  --field-min-height: 48px;
+  --composer-icon-size: 36px;
+  --icon-button-size: 44px;
+  --icon-size: 20px;
+  --avatar-size: 56px;
+  --border-width: 1px;
+  --field-padding-x: 12px;
+  --content-inset: 12px;
+  --user-bubble-max-width: 82%;
+  --chat-image-preview: 64px;
+  --chat-image-bubble: 136px;
+  --sheet-drag-handle-height: 24px;
+  --chat-max-width: 720px;
+  --chat-message-gap: var(--spacing-lg);
+  --chat-composer-padding-x: var(--spacing-md);
+  --chat-composer-padding-y: var(--spacing-md);
+  --chat-composer-bottom-inset: 35px;
+  --chat-composer-top-inset: 32px;
+
+  --shadow-floating: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.6);
+
+  /* shadcn/ui aliases — map ke Minorum tokens */
+  --background: var(--color-background);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface-raised);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-accent-primary);
+  --primary-foreground: var(--color-text-on-accent);
+  --secondary: var(--color-surface-raised);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-surface);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-surface-raised);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error);
+  --border: var(--color-border);
+  --input: var(--color-border-subtle);
+  --ring: var(--color-focus-ring);
+  --radius: var(--radius-standard);
+  --chart-1: var(--color-text-secondary);
+  --chart-2: var(--color-text-muted);
+  --chart-3: var(--color-border);
+  --chart-4: var(--color-surface-raised);
+  --chart-5: var(--color-surface);
+  --sidebar: var(--color-surface);
+  --sidebar-foreground: var(--color-text-primary);
+  --sidebar-primary: var(--color-accent-primary);
+  --sidebar-primary-foreground: var(--color-text-on-accent);
+  --sidebar-accent: var(--color-surface-raised);
+  --sidebar-accent-foreground: var(--color-text-primary);
+  --sidebar-border: var(--color-border);
+  --sidebar-ring: var(--color-focus-ring);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-text-primary);
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-border: var(--color-border);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-on-accent: var(--color-text-on-accent);
+  --color-accent-primary: var(--color-accent-primary);
+  --color-focus-ring: var(--color-focus-ring);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-error: var(--color-error);
+  --color-disabled-bg: var(--color-disabled-bg);
+  --color-disabled-text: var(--color-disabled-text);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-standard);
+  --radius-xl: calc(var(--radius-standard) + 2px);
+
+  --shadow-floating: var(--shadow-floating);
+  --shadow-modal: var(--shadow-modal);
+
+  --spacing-xs: var(--spacing-xs);
+  --spacing-sm: var(--spacing-sm);
+  --spacing-md: var(--spacing-md);
+  --spacing-lg: var(--spacing-lg);
+  --spacing-xl: var(--spacing-xl);
+  --spacing-xxl: var(--spacing-xxl);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-large-size);
+  font-weight: var(--text-body-large-weight);
+  line-height: var(--text-body-large-line-height);
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+}
+
+.dark {
+  --background: var(--color-background);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface-raised);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-accent-primary);
+  --primary-foreground: var(--color-text-on-accent);
+  --secondary: var(--color-surface-raised);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-surface);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-surface-raised);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error);
+  --border: var(--color-border);
+  --input: var(--color-border-subtle);
+  --ring: var(--color-focus-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Scroll — tetap bisa scroll, scrollbar tidak ditampilkan */
+.overflow-y-auto,
+.overflow-auto,
+.overflow-y-scroll,
+.overflow-scroll,
+.chat-scroll,
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar,
+.overflow-y-scroll::-webkit-scrollbar,
+.overflow-scroll::-webkit-scrollbar,
+.chat-scroll::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@layer utilities {
+  .text-token-body {
+    font-size: var(--text-body-large-size);
+    font-weight: var(--text-body-large-weight);
+    line-height: var(--text-body-large-line-height);
+  }
+
+  .text-token-body-medium {
+    font-size: var(--text-body-medium-size);
+    font-weight: var(--text-body-medium-weight);
+    line-height: var(--text-body-medium-line-height);
+  }
+
+  .text-token-label {
+    font-size: var(--text-label-small-size);
+    font-weight: var(--text-label-small-weight);
+    line-height: var(--text-label-small-line-height);
+  }
+
+  .text-token-title {
+    font-size: var(--text-title-small-size);
+    font-weight: var(--text-title-small-weight);
+    line-height: var(--text-title-small-line-height);
+  }
+
+  .rounded-token {
+    border-radius: var(--radius-standard);
+  }
+
+  .rounded-token-sm {
+    border-radius: var(--radius-sm);
+  }
+
+  .rounded-token-md {
+    border-radius: var(--radius-md);
+  }
+
+  .gap-chat-message {
+    gap: var(--chat-message-gap);
+  }
+
+  .pt-chat-message-gap {
+    padding-top: var(--chat-message-gap);
+  }
+
+  .pb-chat-message-gap {
+    padding-bottom: var(--chat-message-gap);
+  }
+
+  .scroll-mt-chat-message-gap {
+    scroll-margin-top: var(--chat-message-gap);
+  }
+
+  .scroll-pb-chat-message-gap {
+    scroll-padding-bottom: var(--chat-message-gap);
+  }
+
+  .px-composer {
+    padding-inline: var(--chat-composer-padding-x);
+  }
+
+  .py-composer {
+    padding-block: var(--chat-composer-padding-y);
+  }
+
+  .pb-composer-bottom {
+    padding-bottom: calc(
+      var(--chat-composer-bottom-inset) + env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  .pt-composer-top {
+    padding-top: var(--chat-composer-top-inset);
+  }
+
+  .scroll-pb-composer-top {
+    scroll-padding-bottom: var(--chat-composer-top-inset);
+  }
+
+  .scroll-pt-composer-top {
+    scroll-padding-top: var(--chat-composer-top-inset);
+  }
+
+  .scroll-mt-composer-top {
+    scroll-margin-top: var(--chat-composer-top-inset);
+  }
+
+  .inset-screen {
+    padding-inline: var(--content-inset);
+    padding-top: var(--chat-composer-top-inset);
+    padding-bottom: calc(
+      var(--chat-composer-bottom-inset) + env(safe-area-inset-bottom, 0px)
+    );
+  }
 }
