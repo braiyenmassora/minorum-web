@@ -5,14 +5,16 @@ import {
 } from "./document-attachment-service";
 import { toApiMessageContent } from "@/lib/models/message-content";
 
-function assert(condition: boolean, message: string): void {
+function assert(condition: boolean, message: string): asserts condition {
   if (!condition) {
     throw new Error(message);
   }
 }
 
 async function main(): Promise<void> {
-  const bad = new File(["hi"], "notes.exe", { type: "application/octet-stream" });
+  const bad = new File(["hi"], "notes.exe", {
+    type: "application/octet-stream",
+  });
   let rejected = false;
   try {
     await prepareDocumentAttachment(bad);
@@ -26,7 +28,10 @@ async function main(): Promise<void> {
   });
   const preparedPdf = await prepareDocumentAttachment(pdf);
   assert(preparedPdf.fileName === "doc.pdf", "pdf name");
-  assert(preparedPdf.dataUrl.startsWith("data:application/pdf"), "pdf data url");
+  assert(
+    preparedPdf.dataUrl.startsWith("data:application/pdf"),
+    "pdf data url",
+  );
   assert(!isTextDocument(preparedPdf.fileName), "pdf not text");
 
   const py = new File(["print(1)\n"], "main.py", { type: "text/x-python" });
@@ -40,10 +45,9 @@ async function main(): Promise<void> {
       file_url: { url: preparedPy.dataUrl, name: preparedPy.fileName },
     },
   ]);
-  const apiText = typeof api === "string" ? api : null;
-  assert(apiText !== null, "py → text string");
-  assert(apiText.includes("print(1)"), "py body inlined");
-  assert(apiText.includes("main.py"), "py name inlined");
+  assert(typeof api === "string", "py → text string");
+  assert(api.includes("print(1)"), "py body inlined");
+  assert(api.includes("main.py"), "py name inlined");
 
   console.log("document-attachment-service checks passed");
 }

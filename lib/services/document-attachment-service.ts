@@ -101,10 +101,7 @@ const MIME_BY_EXT: Record<string, string> = {
   proto: "text/x-protobuf",
 };
 
-const ALLOWED_EXTENSIONS = new Set([
-  ...BINARY_EXTENSIONS,
-  ...TEXT_EXTENSIONS,
-]);
+const ALLOWED_EXTENSIONS = new Set([...BINARY_EXTENSIONS, ...TEXT_EXTENSIONS]);
 
 export const DOCUMENT_FILE_ACCEPT = [
   ...[...ALLOWED_EXTENSIONS].map((ext) => `.${ext}`),
