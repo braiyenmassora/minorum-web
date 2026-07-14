@@ -5,6 +5,7 @@ import {
 } from "@/lib/core/config/app-config";
 import { systemPrompt } from "@/lib/core/persona/minorum-persona";
 import type { ApiMessage, Message } from "@/lib/models/message";
+import { toApiMessageContent } from "@/lib/models/message-content";
 import {
   ChatApiError,
   classifyHttpStatus,
@@ -87,7 +88,7 @@ function toApiMessages(messages: Message[]): ApiMessage[] {
   for (const message of messages) {
     apiMessages.push({
       role: message.role,
-      content: message.content,
+      content: toApiMessageContent(message.content),
     });
   }
 

@@ -102,7 +102,7 @@
   --chat-image-bubble: 136px;
   --sheet-drag-handle-height: 24px;
   --chat-max-width: 860px;
-  --setup-max-width: 350px;
+  --setup-max-width: 360px;
   --chat-message-gap: var(--spacing-lg);
   --chat-composer-padding-x: var(--spacing-md);
   --chat-composer-padding-y: var(--spacing-md);

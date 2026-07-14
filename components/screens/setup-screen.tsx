@@ -22,7 +22,7 @@ type SetupScreenProps = {
 };
 
 const inputClassName =
-  "h-[var(--field-min-height)] w-full min-w-0 rounded-token border border-border-subtle bg-assistant-bubble px-composer text-token-body text-text-primary outline-none placeholder:text-text-muted focus-visible:border-focus-ring focus-visible:ring-1 focus-visible:ring-focus-ring/40";
+  "h-10 w-full min-w-0 rounded-token-sm border border-border-subtle bg-background px-3 text-token-body-medium text-text-primary outline-none placeholder:text-text-muted focus-visible:border-focus-ring focus-visible:ring-1 focus-visible:ring-focus-ring/40";
 
 const outlineButtonClassName =
   "inline-flex h-8 min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-token-sm border border-border-subtle text-token-body-medium text-text-secondary transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-50";
@@ -115,31 +115,31 @@ export function SetupScreen({
   const statusMessage = errorMessage ?? successMessage;
 
   return (
-    <main className="inset-screen flex w-full min-w-0 flex-1 flex-col justify-center overflow-y-auto">
-      <div className="screen-shell min-w-0">
-        <div className="setup-form-shell flex flex-col gap-chat-message">
-          <div className="flex flex-col items-center gap-chat-message text-center">
-            <AppLogo size={56} priority />
-            <div className="flex flex-col gap-0.5">
-              <h1 className="text-token-title font-medium text-text-primary">
-                {copy.title}
-              </h1>
-              {copy.subtitle ? (
-                <p className="text-token-body-medium text-text-secondary">
-                  {copy.subtitle}
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-chat-message">
-            <div className="flex flex-col gap-1">
-              <p className="text-token-label text-text-muted">
-                {copy.profile_section}
+    <main className="flex w-full min-w-0 flex-1 flex-col justify-center overflow-y-auto bg-background px-[var(--content-inset)] py-8">
+      <div className="setup-form-shell flex w-full min-w-0 flex-col gap-5">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <AppLogo size={48} priority />
+          <div className="flex flex-col gap-0.5">
+            <h1 className="text-[20px] leading-[1.25] font-medium tracking-[-0.4px] text-text-primary">
+              {copy.title}
+            </h1>
+            {copy.subtitle ? (
+              <p className="text-token-body-medium text-text-secondary">
+                {copy.subtitle}
               </p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-token border border-border-subtle bg-assistant-bubble shadow-floating">
+          <section className="flex flex-col gap-2 border-b border-border-subtle px-3 py-3">
+            <p className="text-[11px] leading-[1.35] tracking-wide text-text-muted uppercase">
+              {copy.profile_section}
+            </p>
+            <div className="flex flex-col gap-1">
               <label
                 htmlFor="full-name"
-                className="text-token-label text-text-muted"
+                className="text-token-label text-text-secondary"
               >
                 {copy.full_name_label}
               </label>
@@ -152,131 +152,141 @@ export function SetupScreen({
                 autoComplete="off"
               />
             </div>
+          </section>
 
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor="api-url"
-                className="text-token-label text-text-muted"
-              >
-                {copy.api_url_label}
-              </label>
-              <input
-                id="api-url"
-                className={inputClassName}
-                placeholder={copy.api_url_hint}
-                value={apiBaseUrl}
-                onChange={(event) => {
-                  setApiBaseUrl(event.target.value);
-                  invalidateTest();
-                }}
-                autoComplete="off"
-              />
-            </div>
+          <section className="flex flex-col gap-2 px-3 py-3">
+            <p className="text-[11px] leading-[1.35] tracking-wide text-text-muted uppercase">
+              {copy.connection_section}
+            </p>
 
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor="api-key"
-                className="text-token-label text-text-muted"
-              >
-                {copy.api_key_label}
-              </label>
-              <div className="flex h-[var(--field-min-height)] w-full min-w-0 items-center gap-3 rounded-token border border-border-subtle bg-assistant-bubble px-composer focus-within:border-focus-ring focus-within:ring-1 focus-within:ring-focus-ring/40">
+            <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="api-url"
+                  className="text-token-label text-text-secondary"
+                >
+                  {copy.api_url_label}
+                </label>
                 <input
-                  id="api-key"
-                  className="min-w-0 flex-1 bg-transparent text-token-body text-text-primary outline-none placeholder:text-text-muted"
-                  type={showApiKey ? "text" : "password"}
-                  placeholder={copy.api_key_hint}
-                  value={apiKey}
+                  id="api-url"
+                  className={inputClassName}
+                  placeholder={copy.api_url_hint}
+                  value={apiBaseUrl}
                   onChange={(event) => {
-                    setApiKey(event.target.value);
+                    setApiBaseUrl(event.target.value);
                     invalidateTest();
                   }}
                   autoComplete="off"
                 />
-                <button
-                  type="button"
-                  className="inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
-                  onClick={() => setShowApiKey((value) => !value)}
-                  aria-label={
-                    showApiKey ? copy.hide_api_key : copy.show_api_key
-                  }
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="api-key"
+                  className="text-token-label text-text-secondary"
                 >
-                  {showApiKey ? (
-                    <EyeOff className="size-[var(--icon-size)]" />
-                  ) : (
-                    <Eye className="size-[var(--icon-size)]" />
-                  )}
-                </button>
+                  {copy.api_key_label}
+                </label>
+                <div className="flex h-10 w-full min-w-0 items-center gap-2 rounded-token-sm border border-border-subtle bg-background px-3 focus-within:border-focus-ring focus-within:ring-1 focus-within:ring-focus-ring/40">
+                  <input
+                    id="api-key"
+                    className="min-w-0 flex-1 bg-transparent text-token-body-medium text-text-primary outline-none placeholder:text-text-muted"
+                    type={showApiKey ? "text" : "password"}
+                    placeholder={copy.api_key_hint}
+                    value={apiKey}
+                    onChange={(event) => {
+                      setApiKey(event.target.value);
+                      invalidateTest();
+                    }}
+                    autoComplete="off"
+                  />
+                  <button
+                    type="button"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+                    onClick={() => setShowApiKey((value) => !value)}
+                    aria-label={
+                      showApiKey ? copy.hide_api_key : copy.show_api_key
+                    }
+                  >
+                    {showApiKey ? (
+                      <EyeOff className="size-3.5" />
+                    ) : (
+                      <Eye className="size-3.5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="model-name"
+                  className="text-token-label text-text-secondary"
+                >
+                  {copy.model_label}
+                </label>
+                <input
+                  id="model-name"
+                  className={inputClassName}
+                  placeholder={copy.model_hint}
+                  value={modelName}
+                  onChange={(event) => {
+                    setModelName(event.target.value);
+                    invalidateTest();
+                  }}
+                  autoComplete="off"
+                />
               </div>
             </div>
-
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor="model-name"
-                className="text-token-label text-text-muted"
-              >
-                {copy.model_label}
-              </label>
-              <input
-                id="model-name"
-                className={inputClassName}
-                placeholder={copy.model_hint}
-                value={modelName}
-                onChange={(event) => {
-                  setModelName(event.target.value);
-                  invalidateTest();
-                }}
-                autoComplete="off"
-              />
-            </div>
-          </div>
+          </section>
 
           {statusMessage ? (
-            <p
+            <div
               className={cn(
-                "text-center text-token-label",
+                "border-t border-border-subtle px-3 py-2.5 text-center text-token-label",
                 errorMessage ? "text-error" : "text-success",
               )}
             >
               {statusMessage}
-            </p>
+            </div>
           ) : null}
 
-          {onCancel ? (
-            <button
-              type="button"
-              className="text-center text-token-body-medium text-text-muted transition-colors hover:text-text-primary"
-              onClick={onCancel}
-              disabled={testing}
-            >
-              {copy.cancel}
-            </button>
-          ) : null}
+          <div className="flex flex-col gap-2 border-t border-border-subtle px-3 py-3">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className={outlineButtonClassName}
+                onClick={() => void handleTestConnection()}
+                disabled={testing}
+              >
+                {testing
+                  ? getAppCopy().internal_not_directly_shown.loading
+                  : copy.test_connection}
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  primaryButtonClassName,
+                  !testPassed || testing
+                    ? "bg-disabled-bg text-disabled-text"
+                    : undefined,
+                )}
+                disabled={!testPassed || testing}
+                onClick={handleSave}
+              >
+                {copy.save}
+              </button>
+            </div>
 
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className={outlineButtonClassName}
-              onClick={() => void handleTestConnection()}
-              disabled={testing}
-            >
-              {testing
-                ? getAppCopy().internal_not_directly_shown.loading
-                : copy.test_connection}
-            </button>
-            <button
-              type="button"
-              className={cn(
-                primaryButtonClassName,
-                !testPassed || testing
-                  ? "bg-disabled-bg text-disabled-text"
-                  : undefined,
-              )}
-              disabled={!testPassed || testing}
-              onClick={handleSave}
-            >
-              {copy.save}
-            </button>
+            {onCancel ? (
+              <button
+                type="button"
+                className="text-center text-token-body-medium text-text-muted transition-colors hover:text-text-primary"
+                onClick={onCancel}
+                disabled={testing}
+              >
+                {copy.cancel}
+              </button>
+            ) : null}
           </div>
         </div>
       </div>

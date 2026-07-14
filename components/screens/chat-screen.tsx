@@ -1,12 +1,15 @@
 "use client";
 
-import { ArrowUp, ChevronDown, ImageIcon } from "lucide-react";
+import { ArrowUp, ChevronDown, FileText, ImageIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ChatBubble } from "@/components/chat/chat-bubble";
 import { ChatHistorySidebar } from "@/components/chat/chat-history-sidebar";
 import { ChatMessageColumn } from "@/components/chat/chat-message-column";
-import { ImagePreviewPanel } from "@/components/chat/image-preview-panel";
+import {
+  DocumentPreviewPanel,
+  ImagePreviewPanel,
+} from "@/components/chat/image-preview-panel";
 import { ModelPickerPanel } from "@/components/chat/model-picker-panel";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { AppLogo } from "@/components/ui/app-logo";
@@ -28,6 +31,7 @@ import {
   upsertChatSession,
 } from "@/lib/services/chat-history-storage-service";
 import { prepareImageAttachment } from "@/lib/services/image-attachment-service";
+import { prepareDocumentAttachment } from "@/lib/services/document-attachment-service";
 import { streamChat } from "@/lib/services/chat-service";
 import { updateConfigModel } from "@/lib/services/config-storage-service";
 import {
@@ -45,6 +49,11 @@ import {
 type ChatScreenProps = {
   config: AppConfig;
   onManageAccount: () => void;
+};
+
+type PendingDocument = {
+  dataUrl: string;
+  fileName: string;
 };
 
 const COMPOSER_GROW_CHAR_LIMIT = 300;
@@ -65,7 +74,10 @@ export function ChatScreen({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const [pendingDocument, setPendingDocument] =
+    useState<PendingDocument | null>(null);
   const [attachingImage, setAttachingImage] = useState(false);
+  const [attachingDocument, setAttachingDocument] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [emptySubtitle, setEmptySubtitle] = useState(
@@ -79,6 +91,7 @@ export function ChatScreen({
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
   const messagesRef = useRef(messages);
   const sessionEpochRef = useRef(0);
 
@@ -100,24 +113,30 @@ export function ChatScreen({
       return;
     }
 
+    // Always measure from DOM value — stale React `input` after send re-expands the box.
+    const value = textarea.value;
     textarea.style.height = "auto";
     textarea.style.overflowY = "hidden";
 
-    if (input.length <= COMPOSER_GROW_CHAR_LIMIT) {
+    if (value.length === 0) {
+      textarea.style.height = "";
+      return;
+    }
+
+    if (value.length <= COMPOSER_GROW_CHAR_LIMIT) {
       textarea.style.height = `${textarea.scrollHeight}px`;
       return;
     }
 
-    // Cap grow at the height of the first 300 chars, then scroll.
     const selectionStart = textarea.selectionStart;
     const selectionEnd = textarea.selectionEnd;
-    textarea.value = input.slice(0, COMPOSER_GROW_CHAR_LIMIT);
+    textarea.value = value.slice(0, COMPOSER_GROW_CHAR_LIMIT);
     const cappedHeight = textarea.scrollHeight;
-    textarea.value = input;
+    textarea.value = value;
     textarea.setSelectionRange(selectionStart, selectionEnd);
     textarea.style.height = `${cappedHeight}px`;
     textarea.style.overflowY = "auto";
-  }, [input]);
+  }, []);
 
   useEffect(() => {
     adjustTextareaHeight();
@@ -148,7 +167,10 @@ export function ChatScreen({
   }, [messages, streaming]);
 
   const canSend =
-    (input.trim().length > 0 || pendingImage !== null) && !streaming;
+    (input.trim().length > 0 ||
+      pendingImage !== null ||
+      pendingDocument !== null) &&
+    !streaming;
 
   const showEmptyState = messages.length === 0 && !streaming;
 
@@ -224,6 +246,7 @@ export function ChatScreen({
     setMessages([]);
     setInput("");
     setPendingImage(null);
+    setPendingDocument(null);
     setErrorMessage(null);
     setStreaming(false);
     setModelPickerOpen(false);
@@ -343,22 +366,24 @@ export function ChatScreen({
     async (rawText?: string) => {
       const text = (rawText ?? input).trim();
       const imageDataUrl = pendingImage;
-      if ((!text && !imageDataUrl) || streaming) {
+      const document = pendingDocument;
+      if ((!text && !imageDataUrl && !document) || streaming) {
         return;
       }
 
       const userMessage: Message = {
         id: createId(),
         role: "user",
-        content: buildUserMessageContent(text, imageDataUrl),
+        content: buildUserMessageContent(text, imageDataUrl, document),
       };
       const history = [...messagesRef.current, userMessage];
 
       setInput("");
       setPendingImage(null);
+      setPendingDocument(null);
       await streamFromHistory(history);
     },
-    [input, pendingImage, streaming, streamFromHistory],
+    [input, pendingDocument, pendingImage, streaming, streamFromHistory],
   );
 
   const handleRetryUser = useCallback(
@@ -400,6 +425,36 @@ export function ChatScreen({
     }
   }
 
+  async function handleDocumentSelect(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+
+    setAttachingDocument(true);
+    setErrorMessage(null);
+
+    try {
+      const prepared = await prepareDocumentAttachment(file);
+      setPendingDocument({
+        dataUrl: prepared.dataUrl,
+        fileName: prepared.fileName,
+      });
+      setModelPickerOpen(false);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : getAppCopy().error_and_snackbar_messages.unknown,
+      );
+    } finally {
+      setAttachingDocument(false);
+    }
+  }
+
   function handleNewChat() {
     startNewSession();
   }
@@ -424,6 +479,7 @@ export function ChatScreen({
     setMessages(session.messages);
     setInput("");
     setPendingImage(null);
+    setPendingDocument(null);
     setErrorMessage(null);
     setStreaming(false);
     setModelPickerOpen(false);
@@ -557,11 +613,19 @@ export function ChatScreen({
                 />
               ) : null}
 
+              {pendingDocument ? (
+                <DocumentPreviewPanel
+                  fileName={pendingDocument.fileName}
+                  onRemove={() => setPendingDocument(null)}
+                />
+              ) : null}
+
               <div
                 className={cn(
                   "flex items-end gap-3 px-composer py-composer",
                   !modelPickerOpen &&
                     !pendingImage &&
+                    !pendingDocument &&
                     "border-t border-border-subtle",
                 )}
               >
@@ -572,6 +636,13 @@ export function ChatScreen({
                   className="hidden"
                   onChange={handleImageSelect}
                 />
+                <input
+                  ref={documentInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="hidden"
+                  onChange={(event) => void handleDocumentSelect(event)}
+                />
                 <button
                   type="button"
                   className="inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
@@ -580,6 +651,15 @@ export function ChatScreen({
                   aria-label={copy.chat_screen_input_header.attach_image}
                 >
                   <ImageIcon className="size-[var(--icon-size)]" />
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
+                  disabled={streaming || attachingDocument}
+                  onClick={() => documentInputRef.current?.click()}
+                  aria-label={copy.chat_screen_input_header.attach_document}
+                >
+                  <FileText className="size-[var(--icon-size)]" />
                 </button>
                 <textarea
                   ref={textareaRef}

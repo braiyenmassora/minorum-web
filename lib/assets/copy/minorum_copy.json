@@ -6,7 +6,8 @@
   "setup_screen": {
     "title": "Minorum",
     "subtitle": "Teman ngobrol yang hangat & sedikit blak-blakan",
-    "profile_section": "Profile",
+    "connection_section": "Koneksi API",
+    "profile_section": "Profil",
     "full_name_label": "Full name",
     "full_name_hint": "Nama lengkap",
     "api_url_label": "API URL",
@@ -23,13 +24,14 @@
     "cancel": "Batal"
   },
   "chat_screen_empty_state": {
-    "title": "Hai, Ada yang bisa di bantu ?",
+    "title": "Mulai Aja Dulu, Pasti Ada Jalan",
     "subtitle": "Jakarta, Indonesia · pukul 12.00 WIB"
   },
   "chat_screen_input_header": {
     "model_prefix": "Model:",
     "new_chat": "New chat",
     "attach_image": "Attach image",
+    "attach_document": "Attach PDF",
     "open_history": "Chats"
   },
   "chat_history_sidebar": {

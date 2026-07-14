@@ -13,21 +13,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-Optional: create `.env.local` to prefill the setup form:
-
-```env
-MINORUM_DEFAULT_API_URL=https://api.example.com/v1
-MINORUM_DEFAULT_API_KEY=sk-...
-MINORUM_DEFAULT_MODEL=model-name
-```
-
-API keys are stored in the browser **localStorage**, not on the server.
-
-Reset setup: open `/?reset`
-
-## Scripts
+## Run Locally
 
 ```bash
 npm run lint          # ESLint

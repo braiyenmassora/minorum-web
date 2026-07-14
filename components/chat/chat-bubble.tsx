@@ -1,5 +1,6 @@
 "use client";
 
+import { FileText } from "lucide-react";
 import { useState } from "react";
 
 import { ChatImage } from "@/components/chat/chat-image";
@@ -9,6 +10,7 @@ import { UserMessageActions } from "@/components/chat/user-message-actions";
 import { getAppCopy } from "@/lib/core/copy/app-copy";
 import type { Message } from "@/lib/models/message";
 import {
+  getMessageFiles,
   getMessageImageUrls,
   getMessageText,
 } from "@/lib/models/message-content";
@@ -47,6 +49,30 @@ function UserBubbleText({ text }: { text: string }) {
   );
 }
 
+function ChatFileChip({
+  name,
+  url,
+  alignEnd,
+}: {
+  name: string;
+  url: string;
+  alignEnd: boolean;
+}) {
+  return (
+    <a
+      href={url}
+      download={name}
+      className={cn(
+        "inline-flex max-w-full items-center gap-2 rounded-token border border-border-subtle bg-assistant-bubble px-3 py-2 text-token-body-medium text-text-primary transition-colors hover:bg-surface-raised",
+        alignEnd && "self-end",
+      )}
+    >
+      <FileText className="size-5 shrink-0 text-text-secondary" aria-hidden />
+      <span className="truncate">{name}</span>
+    </a>
+  );
+}
+
 export function ChatBubble({
   message,
   actionsDisabled = false,
@@ -54,13 +80,15 @@ export function ChatBubble({
 }: ChatBubbleProps) {
   const text = getMessageText(message.content);
   const imageUrls = getMessageImageUrls(message.content);
+  const files = getMessageFiles(message.content);
   const isUser = message.role === "user";
+  const hasMedia = imageUrls.length > 0 || files.length > 0;
 
-  if (!text && imageUrls.length === 0) {
+  if (!text && !hasMedia) {
     return null;
   }
 
-  const imageRow = (
+  const mediaRow = (
     <div
       className={cn(
         "flex flex-wrap gap-1.5",
@@ -70,13 +98,21 @@ export function ChatBubble({
       {imageUrls.map((url) => (
         <ChatImage key={url} src={url} size="bubble" />
       ))}
+      {files.map((file) => (
+        <ChatFileChip
+          key={`${file.name}-${file.url.slice(0, 32)}`}
+          name={file.name}
+          url={file.url}
+          alignEnd={isUser}
+        />
+      ))}
     </div>
   );
 
   if (isUser && !text) {
     return (
       <div className="flex w-full min-w-0 flex-col items-end gap-1">
-        {imageRow}
+        {mediaRow}
         {onRetryUser ? (
           <UserMessageActions
             text=""
@@ -95,7 +131,7 @@ export function ChatBubble({
         isUser ? "items-end" : "items-start",
       )}
     >
-      {imageUrls.length > 0 ? imageRow : null}
+      {hasMedia ? mediaRow : null}
 
       {text ? (
         isUser ? (
