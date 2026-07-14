@@ -18,6 +18,7 @@ type AppGateProps = {
 
 export function AppGate({ devDefaults }: AppGateProps) {
   const [config, setConfig] = useState<AppConfig | null>(null);
+  const [setupOpen, setSetupOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export function AppGate({ devDefaults }: AppGateProps) {
   if (loading) {
     return (
       <main className="inset-screen flex flex-1 flex-col items-center justify-center gap-3">
-        <AppLogo size={56} />
+        <AppLogo size={56} priority />
         <p className="text-token-body-medium text-text-secondary">
           {getAppCopy().internal_not_directly_shown.loading}
         </p>
@@ -44,17 +45,25 @@ export function AppGate({ devDefaults }: AppGateProps) {
     );
   }
 
-  if (!config) {
+  if (!config || setupOpen) {
     return (
       <div className="flex min-h-0 w-full flex-1 flex-col">
-        <SetupScreen devDefaults={devDefaults} onComplete={setConfig} />
+        <SetupScreen
+          devDefaults={devDefaults}
+          initialConfig={config ?? undefined}
+          onComplete={(next) => {
+            setConfig(next);
+            setSetupOpen(false);
+          }}
+          onCancel={config ? () => setSetupOpen(false) : undefined}
+        />
       </div>
     );
   }
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      <ChatScreen config={config} />
+      <ChatScreen config={config} onManageAccount={() => setSetupOpen(true)} />
     </div>
   );
 }

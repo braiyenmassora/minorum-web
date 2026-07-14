@@ -101,7 +101,7 @@
   --chat-image-preview: 64px;
   --chat-image-bubble: 136px;
   --sheet-drag-handle-height: 24px;
-  --chat-max-width: 720px;
+  --chat-max-width: 860px;
   --setup-max-width: 350px;
   --chat-message-gap: var(--spacing-lg);
   --chat-composer-padding-x: var(--spacing-md);
@@ -269,6 +269,17 @@ body {
   html {
     @apply font-sans;
   }
+
+  /* Chrome autofill forces a white fill — keep fields on dark bubble. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--color-text-primary);
+    caret-color: var(--color-text-primary);
+    box-shadow: 0 0 0 1000px var(--color-assistant-bubble) inset;
+    transition: background-color 99999s ease-in-out 0s;
+  }
 }
 
 /* Scroll — tetap bisa scroll, scrollbar tidak ditampilkan */
@@ -305,6 +316,15 @@ body {
   }
 }
 
+.composer-textarea {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.composer-textarea::-webkit-scrollbar {
+  display: none;
+}
+
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -316,7 +336,7 @@ body {
   width: 6px;
   height: 6px;
   border-radius: 9999px;
-  background-color: var(--color-text-muted);
+  background-color: #ffffff;
   animation-name: typing-wave;
   animation-duration: 1.4s;
   animation-timing-function: ease-in-out;

@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 import { AppLogo } from "@/components/ui/app-logo";
+import type { AppConfig } from "@/lib/core/config/app-config";
 import { validateAppConfig } from "@/lib/core/config/app-config";
 import type { SetupDefaults } from "@/lib/core/config/setup-defaults";
 import { messageForApiError } from "@/lib/core/copy/api-error-message";
@@ -15,7 +16,9 @@ import { cn } from "@/lib/utils";
 
 type SetupScreenProps = {
   devDefaults?: SetupDefaults;
+  initialConfig?: AppConfig;
   onComplete: (config: ReturnType<typeof validateAppConfig>) => void;
+  onCancel?: () => void;
 };
 
 const inputClassName =
@@ -27,15 +30,27 @@ const outlineButtonClassName =
 const primaryButtonClassName =
   "inline-flex h-8 min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-token-sm bg-user-bubble text-token-body-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50";
 
-export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
+export function SetupScreen({
+  devDefaults,
+  initialConfig,
+  onComplete,
+  onCancel,
+}: SetupScreenProps) {
   const copy = getAppCopy().setup_screen;
 
-  const [apiBaseUrl, setApiBaseUrl] = useState(devDefaults?.apiBaseUrl ?? "");
-  const [apiKey, setApiKey] = useState(devDefaults?.apiKey ?? "");
-  const [modelName, setModelName] = useState(devDefaults?.modelName ?? "");
+  const [apiBaseUrl, setApiBaseUrl] = useState(
+    initialConfig?.apiBaseUrl ?? devDefaults?.apiBaseUrl ?? "",
+  );
+  const [apiKey, setApiKey] = useState(
+    initialConfig?.apiKey ?? devDefaults?.apiKey ?? "",
+  );
+  const [modelName, setModelName] = useState(
+    initialConfig?.modelName ?? devDefaults?.modelName ?? "",
+  );
+  const [fullName, setFullName] = useState(initialConfig?.fullName ?? "");
   const [showApiKey, setShowApiKey] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [testPassed, setTestPassed] = useState(false);
+  const [testPassed, setTestPassed] = useState(Boolean(initialConfig));
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -51,7 +66,12 @@ export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
     setSuccessMessage(null);
 
     try {
-      const config = validateAppConfig({ apiBaseUrl, apiKey, modelName });
+      const config = validateAppConfig({
+        apiBaseUrl,
+        apiKey,
+        modelName,
+        fullName,
+      });
       await testConnection(config);
       setTestPassed(true);
       setSuccessMessage(copy.test_connection_success);
@@ -70,7 +90,16 @@ export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
     }
 
     try {
-      const config = validateAppConfig({ apiBaseUrl, apiKey, modelName });
+      const config = validateAppConfig({
+        apiBaseUrl,
+        apiKey,
+        modelName,
+        fullName,
+      });
+      if (!config.fullName) {
+        setErrorMessage(getErrorMessage("profile_required"));
+        return;
+      }
       saveConfig(config);
       onComplete(config);
     } catch (error) {
@@ -90,7 +119,7 @@ export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
       <div className="screen-shell min-w-0">
         <div className="setup-form-shell flex flex-col gap-chat-message">
           <div className="flex flex-col items-center gap-chat-message text-center">
-            <AppLogo size={56} />
+            <AppLogo size={56} priority />
             <div className="flex flex-col gap-0.5">
               <h1 className="text-token-title font-medium text-text-primary">
                 {copy.title}
@@ -104,6 +133,26 @@ export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
           </div>
 
           <div className="flex flex-col gap-chat-message">
+            <div className="flex flex-col gap-1">
+              <p className="text-token-label text-text-muted">
+                {copy.profile_section}
+              </p>
+              <label
+                htmlFor="full-name"
+                className="text-token-label text-text-muted"
+              >
+                {copy.full_name_label}
+              </label>
+              <input
+                id="full-name"
+                className={inputClassName}
+                placeholder={copy.full_name_hint}
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                autoComplete="off"
+              />
+            </div>
+
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="api-url"
@@ -191,6 +240,17 @@ export function SetupScreen({ devDefaults, onComplete }: SetupScreenProps) {
             >
               {statusMessage}
             </p>
+          ) : null}
+
+          {onCancel ? (
+            <button
+              type="button"
+              className="text-center text-token-body-medium text-text-muted transition-colors hover:text-text-primary"
+              onClick={onCancel}
+              disabled={testing}
+            >
+              {copy.cancel}
+            </button>
           ) : null}
 
           <div className="flex gap-2">

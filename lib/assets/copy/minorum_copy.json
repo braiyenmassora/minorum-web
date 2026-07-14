@@ -6,6 +6,9 @@
   "setup_screen": {
     "title": "Minorum",
     "subtitle": "Teman ngobrol yang hangat & sedikit blak-blakan",
+    "profile_section": "Profile",
+    "full_name_label": "Full name",
+    "full_name_hint": "Nama lengkap",
     "api_url_label": "API URL",
     "api_url_hint": "https://api.example.com",
     "api_key_label": "API Key",
@@ -16,16 +19,36 @@
     "test_connection_success": "Koneksi oke!",
     "save": "Mulai chat",
     "show_api_key": "Tampilkan",
-    "hide_api_key": "Sembunyikan"
+    "hide_api_key": "Sembunyikan",
+    "cancel": "Batal"
   },
   "chat_screen_empty_state": {
-    "title": "Hai, ada yang bisa dibantu?",
-    "subtitle": "Tanya apa aja — santai aja."
+    "title": "Hai, Ada yang bisa di bantu ?",
+    "subtitle": "Jakarta, Indonesia · pukul 12.00 WIB"
   },
   "chat_screen_input_header": {
     "model_prefix": "Model:",
-    "new_chat": "Chat baru",
-    "attach_image": "Lampirkan gambar"
+    "new_chat": "New chat",
+    "attach_image": "Attach image",
+    "open_history": "Chats"
+  },
+  "chat_history_sidebar": {
+    "title": "Minorum",
+    "new_chat": "New chat",
+    "empty": "No chats yet",
+    "delete": "Delete",
+    "close": "Close",
+    "account": "Profil",
+    "manage_setup": "Ubah setup"
+  },
+  "system_status": {
+    "checking": "Checking…"
+  },
+  "chat_bubble": {
+    "show_more": "Show more",
+    "show_less": "Show less",
+    "copy": "Salin",
+    "retry": "Retry"
   },
   "chat_screen_reset_bottom_sheet": {
     "title": "Reset chat?",
@@ -51,6 +74,7 @@
     "timeout": "Kelamaan nunggu",
     "unknown": "Ada yang salah",
     "config_incomplete": "Lengkapi dulu URL, key, dan model",
+    "profile_required": "Isi full name dulu",
     "test_connection_required": "Tes koneksi dulu sebelum lanjut"
   },
   "internal_not_directly_shown": {

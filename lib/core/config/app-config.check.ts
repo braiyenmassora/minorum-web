@@ -56,5 +56,14 @@ assert(
 );
 assert(valid.apiKey === "sk-test", "validate keeps api key");
 assert(valid.modelName === "auto", "validate keeps model");
+assert(valid.fullName === "", "validate defaults empty full name");
+
+const withName = validateAppConfig({
+  apiBaseUrl: "https://api.example.com/",
+  apiKey: "sk-test",
+  modelName: "auto",
+  fullName: "  Braiyen Massora  ",
+});
+assert(withName.fullName === "Braiyen Massora", "validate trims full name");
 
 console.log("app-config checks passed");

@@ -1,0 +1,29 @@
+{
+  "statuses": [
+    {
+      "key": "operational",
+      "label": "All Systems Operational",
+      "color": "green"
+    },
+    {
+      "key": "degraded_performance",
+      "label": "Degraded Performance",
+      "color": "yellow"
+    },
+    {
+      "key": "partial_outage",
+      "label": "Partial Outage",
+      "color": "orange"
+    },
+    {
+      "key": "major_outage",
+      "label": "Major Outage",
+      "color": "red"
+    },
+    {
+      "key": "maintenance",
+      "label": "Scheduled Maintenance",
+      "color": "blue"
+    }
+  ]
+}

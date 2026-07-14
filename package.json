@@ -11,6 +11,7 @@
     "format:check": "prettier --check .",
     "check:app-config": "npx tsx lib/core/config/app-config.check.ts",
     "check:chat-stream": "npx tsx lib/services/chat-stream-parser.check.ts",
+    "check:chat-session": "npx tsx lib/models/chat-session.check.ts",
     "check:app-copy": "npx tsx lib/core/copy/app-copy.check.ts",
     "check:image": "npx tsx lib/services/image-attachment-service.check.ts"
   },

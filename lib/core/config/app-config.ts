@@ -2,6 +2,7 @@ export type AppConfig = {
   apiBaseUrl: string;
   apiKey: string;
   modelName: string;
+  fullName: string;
 };
 
 export function normalizeApiBaseUrl(raw: string): string {
@@ -30,6 +31,7 @@ export function validateAppConfig(input: Partial<AppConfig>): AppConfig {
   const apiBaseUrl = input.apiBaseUrl?.trim() ?? "";
   const apiKey = input.apiKey?.trim() ?? "";
   const modelName = input.modelName?.trim() ?? "";
+  const fullName = input.fullName?.trim() ?? "";
 
   if (!apiBaseUrl || !apiKey || !modelName) {
     throw new Error("Config belum lengkap");
@@ -39,5 +41,6 @@ export function validateAppConfig(input: Partial<AppConfig>): AppConfig {
     apiBaseUrl: normalizeApiBaseUrl(apiBaseUrl),
     apiKey,
     modelName,
+    fullName,
   };
 }

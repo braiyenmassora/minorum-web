@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   apiBaseUrl: "api_base_url",
   apiKey: "api_key",
   modelName: "model_name",
+  fullName: "full_name",
 } as const;
 
 function isBrowser(): boolean {
@@ -21,13 +22,14 @@ export function loadConfig(): AppConfig | null {
   const apiBaseUrl = localStorage.getItem(STORAGE_KEYS.apiBaseUrl);
   const apiKey = localStorage.getItem(STORAGE_KEYS.apiKey);
   const modelName = localStorage.getItem(STORAGE_KEYS.modelName);
+  const fullName = localStorage.getItem(STORAGE_KEYS.fullName) ?? "";
 
   if (!apiBaseUrl || !apiKey || !modelName) {
     return null;
   }
 
   try {
-    return validateAppConfig({ apiBaseUrl, apiKey, modelName });
+    return validateAppConfig({ apiBaseUrl, apiKey, modelName, fullName });
   } catch {
     return null;
   }
@@ -42,6 +44,7 @@ export function saveConfig(config: AppConfig): void {
   localStorage.setItem(STORAGE_KEYS.apiBaseUrl, valid.apiBaseUrl);
   localStorage.setItem(STORAGE_KEYS.apiKey, valid.apiKey);
   localStorage.setItem(STORAGE_KEYS.modelName, valid.modelName);
+  localStorage.setItem(STORAGE_KEYS.fullName, valid.fullName);
 }
 
 export function updateConfigModel(

@@ -25,7 +25,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         label="Salin kode"
         className="absolute top-1 right-1 z-10"
       />
-      <pre className="overflow-x-auto rounded-token border border-white/10 p-2.5 pr-9 text-[0.9em] leading-[1.5]">
+      <pre className="overflow-x-auto rounded-token border border-white/10 p-2.5 pr-9">
         <code
           className={language ? `hljs language-${language}` : "hljs"}
           dangerouslySetInnerHTML={{ __html: highlighted }}
