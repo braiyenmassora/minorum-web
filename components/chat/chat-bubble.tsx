@@ -15,6 +15,7 @@ import {
   getMessageText,
 } from "@/lib/models/message-content";
 import { cn } from "@/lib/utils";
+import { normalizeAssistantMarkdown } from "@/lib/utils/normalize-assistant-markdown";
 
 const USER_TEXT_PREVIEW_CHARS = 500;
 
@@ -148,7 +149,10 @@ export function ChatBubble({
         ) : (
           <div className="w-full min-w-0 text-token-body leading-[1.5] text-text-primary">
             <ChatMarkdown content={text} />
-            <ChatMessageActions messageId={message.id} text={text} />
+            <ChatMessageActions
+              messageId={message.id}
+              text={normalizeAssistantMarkdown(text)}
+            />
           </div>
         )
       ) : null}

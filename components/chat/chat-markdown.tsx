@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 
 import { CodeBlock } from "@/components/chat/code-block";
 import { extractNodeText } from "@/lib/utils/extract-node-text";
+import { normalizeAssistantMarkdown } from "@/lib/utils/normalize-assistant-markdown";
 
 type ChatMarkdownProps = {
   content: string;
@@ -39,6 +40,8 @@ function MarkdownPre({ children }: { children?: ReactNode }) {
 }
 
 export function ChatMarkdown({ content }: ChatMarkdownProps) {
+  const markdown = normalizeAssistantMarkdown(content);
+
   return (
     <div className="break-words">
       <ReactMarkdown
@@ -77,7 +80,7 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
           pre: ({ children }) => <MarkdownPre>{children}</MarkdownPre>,
         }}
       >
-        {content}
+        {markdown}
       </ReactMarkdown>
     </div>
   );

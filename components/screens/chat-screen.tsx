@@ -631,7 +631,7 @@ export function ChatScreen({
               ) : null}
 
               <div ref={modelPickerRef}>
-                <div className="flex items-center justify-between gap-3 px-composer py-composer">
+                <div className="flex items-center justify-between gap-2 px-composer py-composer">
                   <button
                     type="button"
                     className="inline-flex min-w-0 flex-1 items-center gap-1 text-left text-token-body font-bold text-white transition-opacity hover:opacity-80 disabled:pointer-events-none"
@@ -650,6 +650,40 @@ export function ChatScreen({
                       )}
                     />
                   </button>
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageSelect}
+                    />
+                    <input
+                      ref={documentInputRef}
+                      type="file"
+                      accept={DOCUMENT_FILE_ACCEPT}
+                      className="hidden"
+                      onChange={(event) => void handleDocumentSelect(event)}
+                    />
+                    <button
+                      type="button"
+                      className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
+                      disabled={streaming || attachingImage}
+                      onClick={() => fileInputRef.current?.click()}
+                      aria-label={copy.chat_screen_input_header.attach_image}
+                    >
+                      <ImageIcon className="size-6" />
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
+                      disabled={streaming || attachingDocument}
+                      onClick={() => documentInputRef.current?.click()}
+                      aria-label={copy.chat_screen_input_header.attach_document}
+                    >
+                      <FileText className="size-[var(--icon-size)]" />
+                    </button>
+                  </div>
                 </div>
 
                 {modelPickerOpen ? (
@@ -683,38 +717,6 @@ export function ChatScreen({
                     "border-t border-border-subtle",
                 )}
               >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageSelect}
-                />
-                <input
-                  ref={documentInputRef}
-                  type="file"
-                  accept={DOCUMENT_FILE_ACCEPT}
-                  className="hidden"
-                  onChange={(event) => void handleDocumentSelect(event)}
-                />
-                <button
-                  type="button"
-                  className="inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
-                  disabled={streaming || attachingImage}
-                  onClick={() => fileInputRef.current?.click()}
-                  aria-label={copy.chat_screen_input_header.attach_image}
-                >
-                  <ImageIcon className="size-6" />
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
-                  disabled={streaming || attachingDocument}
-                  onClick={() => documentInputRef.current?.click()}
-                  aria-label={copy.chat_screen_input_header.attach_document}
-                >
-                  <FileText className="size-[var(--icon-size)]" />
-                </button>
                 <textarea
                   ref={textareaRef}
                   value={input}
