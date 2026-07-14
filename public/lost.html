@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Minorum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      background: #000;
+      color: #e9edef;
+      font-family: Geist, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    img {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+    .copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      max-width: 22rem;
+    }
+    h1 {
+      font-size: 24px;
+      line-height: 1.2;
+      font-weight: 500;
+      letter-spacing: -0.48px;
+      color: #e9edef;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.5;
+      font-weight: 400;
+      color: #8696a0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/logo.jpeg" alt="Minorum" width="56" height="56" />
+    <div class="copy">
+      <h1>Wrong Coordinates, Turn around</h1>
+      <p>Lost in deep space, go hunt for a black hole</p>
+    </div>
+  </main>
+</body>
+</html>
