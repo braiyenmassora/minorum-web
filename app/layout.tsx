@@ -36,7 +36,10 @@ export default function RootLayout({
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} ${firaCode.variable} dark h-full antialiased`}
     >
-      <body className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+      <body
+        className="flex h-dvh flex-col overflow-hidden bg-background text-foreground"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

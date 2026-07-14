@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trash2, UserRound } from "lucide-react";
+import { Eraser, Plus, Trash2, UserRound } from "lucide-react";
 
 import { AppLogo } from "@/components/ui/app-logo";
 import { SystemStatusIndicator } from "@/components/chat/system-status-indicator";
@@ -17,6 +17,7 @@ type ChatHistorySidebarProps = {
   onNewChat: () => void;
   onSelect: (sessionId: string) => void;
   onDelete: (sessionId: string) => void;
+  onClearAll: () => void;
   onManageAccount: () => void;
 };
 
@@ -28,6 +29,7 @@ export function ChatHistorySidebar({
   onNewChat,
   onSelect,
   onDelete,
+  onClearAll,
   onManageAccount,
 }: ChatHistorySidebarProps) {
   const copy = getAppCopy().chat_history_sidebar;
@@ -44,14 +46,27 @@ export function ChatHistorySidebar({
             {copy.title}
           </h2>
         </div>
-        <button
-          type="button"
-          className="inline-flex size-7 shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
-          onClick={onNewChat}
-          aria-label={copy.new_chat}
-        >
-          <Plus className="size-4" />
-        </button>
+        <div className="flex shrink-0 items-center gap-0.5">
+          <button
+            type="button"
+            className="inline-flex size-7 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-error disabled:opacity-40"
+            onClick={onClearAll}
+            disabled={sessions.length === 0}
+            aria-label={copy.clear_all}
+            title={copy.clear_all}
+          >
+            <Eraser className="size-4" />
+          </button>
+          <button
+            type="button"
+            className="inline-flex size-7 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+            onClick={onNewChat}
+            aria-label={copy.new_chat}
+            title={copy.new_chat}
+          >
+            <Plus className="size-4" />
+          </button>
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">

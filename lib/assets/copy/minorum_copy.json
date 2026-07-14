@@ -15,7 +15,7 @@
     "api_key_label": "API Key",
     "api_key_hint": "sk-...",
     "model_label": "Model",
-    "model_hint": "Pilih atau ketik nama model",
+    "model_hint": "Select or type a model name",
     "test_connection": "Tes koneksi",
     "test_connection_success": "Koneksi oke!",
     "save": "Mulai chat",
@@ -25,7 +25,7 @@
   },
   "chat_screen_empty_state": {
     "title": "Mulai Aja Dulu, Pasti Ada Jalan",
-    "subtitle": "Jakarta, Indonesia · pukul 12.00 WIB"
+    "subtitle": "Jakarta, Indonesia · pukul 08.00 AM"
   },
   "chat_screen_input_header": {
     "model_prefix": "Model:",
@@ -37,6 +37,7 @@
   "chat_history_sidebar": {
     "title": "Minorum",
     "new_chat": "New chat",
+    "clear_all": "Clear all chats",
     "empty": "No chats yet",
     "delete": "Delete",
     "close": "Close",
@@ -59,10 +60,11 @@
     "cancel": "Batal"
   },
   "pilih_model_bottom_sheet": {
-    "title": "Pilih model",
-    "loading": "Ambil daftar model...",
-    "empty": "Model nggak ketemu",
-    "close": "Tutup"
+    "title": "Select model",
+    "loading": "Loading models…",
+    "empty": "No models found",
+    "search_hint": "Search models",
+    "close": "Close"
   },
   "upload_gambar_bottom_sheet": {
     "title": "Lampirkan gambar",
@@ -78,8 +80,5 @@
     "config_incomplete": "Lengkapi dulu URL, key, dan model",
     "profile_required": "Isi full name dulu",
     "test_connection_required": "Tes koneksi dulu sebelum lanjut"
-  },
-  "internal_not_directly_shown": {
-    "loading": "Memuat..."
   }
 }

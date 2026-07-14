@@ -11,41 +11,31 @@ import { fetchModels } from "@/lib/services/chat-service";
 import { cn } from "@/lib/utils";
 
 type ModelPickerPanelProps = {
-  open: boolean;
   config: AppConfig;
   onSelect: (modelName: string) => void;
 };
 
-export function ModelPickerPanel({
-  open,
-  config,
-  onSelect,
-}: ModelPickerPanelProps) {
+export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
   const copy = getAppCopy().pilih_model_bottom_sheet;
   const [models, setModels] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
-
     let cancelled = false;
 
     void (async () => {
-      setLoading(true);
-      setErrorMessage(null);
-      setModels([]);
-
       try {
         const result = await fetchModels(config);
         if (!cancelled) {
           setModels(result);
+          setErrorMessage(null);
         }
       } catch (error) {
         if (!cancelled) {
           setErrorMessage(messageForApiError(toChatApiError(error).kind));
+          setModels([]);
         }
       } finally {
         if (!cancelled) {
@@ -57,14 +47,30 @@ export function ModelPickerPanel({
     return () => {
       cancelled = true;
     };
-  }, [open, config]);
+  }, [config]);
 
-  if (!open) {
-    return null;
-  }
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? models.filter(
+        (model) =>
+          model.toLowerCase().includes(q) ||
+          getModelDisplayName(model).toLowerCase().includes(q),
+      )
+    : models;
 
   return (
     <div className="border-b border-border-subtle px-composer py-composer">
+      {!loading && !errorMessage && models.length > 0 ? (
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={copy.search_hint}
+          aria-label={copy.search_hint}
+          className="mb-2 h-8 w-full min-w-0 rounded-token-sm border border-border-subtle bg-background px-2.5 text-token-body-medium text-text-primary outline-none placeholder:text-text-muted focus-visible:border-sidebar-border"
+        />
+      ) : null}
+
       {loading ? (
         <p className="px-1 py-1.5 text-token-body-medium text-text-secondary">
           {copy.loading}
@@ -77,14 +83,14 @@ export function ModelPickerPanel({
         </p>
       ) : null}
 
-      {!loading && !errorMessage && models.length === 0 ? (
+      {!loading && !errorMessage && filtered.length === 0 ? (
         <p className="px-1 py-1.5 text-token-body-medium text-text-secondary">
           {copy.empty}
         </p>
       ) : null}
 
       <div className="flex max-h-44 flex-col gap-1.5 overflow-y-auto">
-        {models.map((model) => {
+        {filtered.map((model) => {
           const isActive = model === config.modelName;
 
           return (

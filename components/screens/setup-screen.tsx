@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import { AppLogo } from "@/components/ui/app-logo";
@@ -22,7 +22,7 @@ type SetupScreenProps = {
 };
 
 const inputClassName =
-  "h-10 w-full min-w-0 rounded-token-sm border border-border-subtle bg-background px-3 text-token-body-medium text-text-primary outline-none placeholder:text-text-muted focus-visible:border-focus-ring focus-visible:ring-1 focus-visible:ring-focus-ring/40";
+  "h-10 w-full min-w-0 rounded-token-sm border border-border-subtle bg-background px-3 text-token-body-medium text-text-primary outline-none placeholder:text-text-muted focus-visible:border-sidebar-border";
 
 const outlineButtonClassName =
   "inline-flex h-8 min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-token-sm border border-border-subtle text-token-body-medium text-text-secondary transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-50";
@@ -187,7 +187,7 @@ export function SetupScreen({
                 >
                   {copy.api_key_label}
                 </label>
-                <div className="flex h-10 w-full min-w-0 items-center gap-2 rounded-token-sm border border-border-subtle bg-background px-3 focus-within:border-focus-ring focus-within:ring-1 focus-within:ring-focus-ring/40">
+                <div className="flex h-10 w-full min-w-0 items-center gap-2 rounded-token-sm border border-border-subtle bg-background px-3 focus-within:border-sidebar-border">
                   <input
                     id="api-key"
                     className="min-w-0 flex-1 bg-transparent text-token-body-medium text-text-primary outline-none placeholder:text-text-muted"
@@ -258,9 +258,14 @@ export function SetupScreen({
                 onClick={() => void handleTestConnection()}
                 disabled={testing}
               >
-                {testing
-                  ? getAppCopy().internal_not_directly_shown.loading
-                  : copy.test_connection}
+                {testing ? (
+                  <Loader2
+                    className="size-4 animate-spin"
+                    aria-label="Loading"
+                  />
+                ) : (
+                  copy.test_connection
+                )}
               </button>
               <button
                 type="button"

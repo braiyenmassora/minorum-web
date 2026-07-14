@@ -10,12 +10,20 @@ function assert(condition: boolean, message: string): void {
   }
 }
 
-const sample = formatJakartaEmptySubtitle(
+const noon = formatJakartaEmptySubtitle(
   new Date("2026-07-14T05:00:00.000Z"), // 12:00 WIB
 );
 assert(
-  sample === "Jakarta, Indonesia · pukul 12.00 WIB",
-  `unexpected: ${sample}`,
+  noon === "Jakarta, Indonesia · pukul 12.00 PM",
+  `unexpected noon: ${noon}`,
+);
+
+const morning = formatJakartaEmptySubtitle(
+  new Date("2026-07-14T01:00:00.000Z"), // 08:00 WIB
+);
+assert(
+  morning === "Jakarta, Indonesia · pukul 08.00 AM",
+  `unexpected morning: ${morning}`,
 );
 
 assert(serverAlignedNow(1000).getTime() - Date.now() >= 900, "offset applied");

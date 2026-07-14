@@ -1,15 +1,16 @@
-/** Empty-state clock — Asia/Jakarta, e.g. "Jakarta, Indonesia · pukul 12.28 WIB" */
+/** Empty-state clock — Asia/Jakarta, e.g. "Jakarta, Indonesia · pukul 08.00 AM" */
 export function formatJakartaEmptySubtitle(now = new Date()): string {
-  const time = new Intl.DateTimeFormat("en-GB", {
+  const time = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Jakarta",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
+    hour12: true,
   })
     .format(now)
-    .replace(":", ".");
+    .replace(":", ".")
+    .replace(/\u202f/g, " ");
 
-  return `Jakarta, Indonesia · pukul ${time} WIB`;
+  return `Jakarta, Indonesia · pukul ${time}`;
 }
 
 /**

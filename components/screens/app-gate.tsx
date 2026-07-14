@@ -1,12 +1,12 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { SetupScreen } from "@/components/screens/setup-screen";
 import { ChatScreen } from "@/components/screens/chat-screen";
-import { AppLogo } from "@/components/ui/app-logo";
 import type { AppConfig } from "@/lib/core/config/app-config";
-import { getAppCopy, loadAppCopy } from "@/lib/core/copy/app-copy";
+import { loadAppCopy } from "@/lib/core/copy/app-copy";
 import type { SetupDefaults } from "@/lib/core/config/setup-defaults";
 import { clearConfig, loadConfig } from "@/lib/services/config-storage-service";
 
@@ -36,18 +36,31 @@ export function AppGate({ devDefaults }: AppGateProps) {
 
   if (loading) {
     return (
-      <main className="inset-screen flex flex-1 flex-col items-center justify-center gap-3">
-        <AppLogo size={56} priority />
-        <p className="text-token-body-medium text-text-secondary">
-          {getAppCopy().internal_not_directly_shown.loading}
-        </p>
+      <main className="inset-screen flex flex-1 flex-col items-center justify-center">
+        <Loader2
+          className="size-8 animate-spin text-text-secondary"
+          aria-label="Loading"
+        />
       </main>
     );
   }
 
-  if (!config || setupOpen) {
-    return (
-      <div className="flex min-h-0 w-full flex-1 flex-col">
+  return (
+    <div className="flex min-h-0 w-full flex-1 flex-col">
+      {config ? (
+        <div
+          className={
+            setupOpen ? "hidden" : "flex min-h-0 w-full flex-1 flex-col"
+          }
+        >
+          <ChatScreen
+            config={config}
+            onManageAccount={() => setSetupOpen(true)}
+          />
+        </div>
+      ) : null}
+
+      {!config || setupOpen ? (
         <SetupScreen
           devDefaults={devDefaults}
           initialConfig={config ?? undefined}
@@ -57,13 +70,7 @@ export function AppGate({ devDefaults }: AppGateProps) {
           }}
           onCancel={config ? () => setSetupOpen(false) : undefined}
         />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-0 w-full flex-1 flex-col">
-      <ChatScreen config={config} onManageAccount={() => setSetupOpen(true)} />
+      ) : null}
     </div>
   );
 }

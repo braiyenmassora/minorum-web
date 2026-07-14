@@ -16,6 +16,12 @@ function requestHost(request: NextRequest): string {
 }
 
 function requestIp(request: NextRequest): string {
+  // Cloudflare orange-cloud → Vercel: trust CF's client IP first.
+  const cf = request.headers.get("cf-connecting-ip")?.trim();
+  if (cf) {
+    return cf;
+  }
+
   const vercel = request.headers.get("x-vercel-forwarded-for");
   if (vercel) {
     return vercel.split(",")[0]?.trim() ?? "";

@@ -25,6 +25,7 @@ import {
 } from "@/lib/models/message-content";
 import { toChatApiError } from "@/lib/services/chat-api-error";
 import {
+  clearChatSessions,
   deleteChatSession,
   getChatSession,
   listChatSessions,
@@ -71,6 +72,11 @@ export function ChatScreen({
 }: ChatScreenProps) {
   const copy = getAppCopy();
   const [config, setConfig] = useState(initialConfig);
+  const [configFromParent, setConfigFromParent] = useState(initialConfig);
+  if (initialConfig !== configFromParent) {
+    setConfigFromParent(initialConfig);
+    setConfig(initialConfig);
+  }
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -95,6 +101,7 @@ export function ChatScreen({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
+  const modelPickerRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef(messages);
   const sessionEpochRef = useRef(0);
 
@@ -109,6 +116,36 @@ export function ChatScreen({
   useEffect(() => {
     void Promise.resolve().then(refreshSessions);
   }, [refreshSessions]);
+
+  useEffect(() => {
+    if (!modelPickerOpen) {
+      return;
+    }
+
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+      if (modelPickerRef.current?.contains(target)) {
+        return;
+      }
+      setModelPickerOpen(false);
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setModelPickerOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [modelPickerOpen]);
 
   const adjustTextareaHeight = useCallback(() => {
     const textarea = textareaRef.current;
@@ -497,6 +534,16 @@ export function ChatScreen({
     }
   }
 
+  function handleClearAllSessions() {
+    if (sessions.length === 0) {
+      return;
+    }
+
+    clearChatSessions();
+    refreshSessions();
+    startNewSession();
+  }
+
   function handleModelSelect(modelName: string) {
     setConfig((current) => updateConfigModel(current, modelName));
     setErrorMessage(null);
@@ -520,6 +567,7 @@ export function ChatScreen({
         onNewChat={handleNewChat}
         onSelect={handleSelectSession}
         onDelete={handleDeleteSession}
+        onClearAll={handleClearAllSessions}
         onManageAccount={onManageAccount}
       />
 
@@ -582,32 +630,35 @@ export function ChatScreen({
                 </div>
               ) : null}
 
-              <div className="flex items-center justify-between gap-3 px-composer py-composer">
-                <button
-                  type="button"
-                  className="inline-flex min-w-0 flex-1 items-center gap-1 text-left text-token-body text-text-primary transition-colors hover:text-text-primary disabled:opacity-50"
-                  onClick={openModelPicker}
-                  disabled={streaming}
-                  title={config.modelName}
-                  aria-expanded={modelPickerOpen}
-                >
-                  <span className="truncate">
-                    {getModelDisplayName(config.modelName)}
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      "size-3 shrink-0 transition-transform",
-                      modelPickerOpen && "rotate-180",
-                    )}
-                  />
-                </button>
-              </div>
+              <div ref={modelPickerRef}>
+                <div className="flex items-center justify-between gap-3 px-composer py-composer">
+                  <button
+                    type="button"
+                    className="inline-flex min-w-0 flex-1 items-center gap-1 text-left text-token-body font-bold text-white transition-opacity hover:opacity-80 disabled:pointer-events-none"
+                    onClick={openModelPicker}
+                    disabled={streaming}
+                    title={config.modelName}
+                    aria-expanded={modelPickerOpen}
+                  >
+                    <span className="truncate">
+                      {getModelDisplayName(config.modelName)}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "size-3 shrink-0 transition-transform",
+                        modelPickerOpen && "rotate-180",
+                      )}
+                    />
+                  </button>
+                </div>
 
-              <ModelPickerPanel
-                open={modelPickerOpen}
-                config={config}
-                onSelect={handleModelSelect}
-              />
+                {modelPickerOpen ? (
+                  <ModelPickerPanel
+                    config={config}
+                    onSelect={handleModelSelect}
+                  />
+                ) : null}
+              </div>
 
               {pendingImage ? (
                 <ImagePreviewPanel
@@ -653,7 +704,7 @@ export function ChatScreen({
                   onClick={() => fileInputRef.current?.click()}
                   aria-label={copy.chat_screen_input_header.attach_image}
                 >
-                  <ImageIcon className="size-[var(--icon-size)]" />
+                  <ImageIcon className="size-6" />
                 </button>
                 <button
                   type="button"
@@ -675,7 +726,7 @@ export function ChatScreen({
                     }
                   }}
                   rows={1}
-                  placeholder="Ketik pesan..."
+                  placeholder="Type a message"
                   disabled={streaming}
                   className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none bg-transparent px-0 py-[7px] text-token-body leading-[1.5] outline-none placeholder:text-text-muted disabled:opacity-50"
                 />

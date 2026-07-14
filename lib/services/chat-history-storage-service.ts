@@ -95,3 +95,7 @@ export function upsertChatSession(input: {
 export function deleteChatSession(id: string): void {
   writeRaw(readRaw().filter((session) => session.id !== id));
 }
+
+export function clearChatSessions(): void {
+  writeRaw([]);
+}
