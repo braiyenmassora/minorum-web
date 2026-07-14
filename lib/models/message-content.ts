@@ -4,6 +4,10 @@ import type {
   MessageContent,
   TextPart,
 } from "@/lib/models/message";
+import {
+  decodeDataUrlText,
+  isTextDocument,
+} from "@/lib/services/document-attachment-service";
 
 export function buildUserMessageContent(
   text: string,
@@ -71,7 +75,7 @@ export function getMessageFiles(
     .map((part) => part.file_url);
 }
 
-/** API payload: PDFs go as image_url data URLs (same channel as images). */
+/** API: text docs → text part; PDF/binary → image_url data URL. */
 export function toApiMessageContent(
   content: MessageContent,
 ): string | Array<TextPart | ImagePart> {
@@ -87,6 +91,13 @@ export function toApiMessageContent(
     }
     if (part.type === "image_url") {
       parts.push(part);
+      continue;
+    }
+    if (isTextDocument(part.file_url.name)) {
+      parts.push({
+        type: "text",
+        text: `File: ${part.file_url.name}\n\n${decodeDataUrlText(part.file_url.url)}`,
+      });
       continue;
     }
     parts.push({

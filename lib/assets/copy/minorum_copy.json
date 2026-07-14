@@ -31,7 +31,7 @@
     "model_prefix": "Model:",
     "new_chat": "New chat",
     "attach_image": "Attach image",
-    "attach_document": "Attach PDF",
+    "attach_document": "Attach file",
     "open_history": "Chats"
   },
   "chat_history_sidebar": {

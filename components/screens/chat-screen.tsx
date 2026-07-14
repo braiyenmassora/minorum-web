@@ -31,7 +31,10 @@ import {
   upsertChatSession,
 } from "@/lib/services/chat-history-storage-service";
 import { prepareImageAttachment } from "@/lib/services/image-attachment-service";
-import { prepareDocumentAttachment } from "@/lib/services/document-attachment-service";
+import {
+  DOCUMENT_FILE_ACCEPT,
+  prepareDocumentAttachment,
+} from "@/lib/services/document-attachment-service";
 import { streamChat } from "@/lib/services/chat-service";
 import { updateConfigModel } from "@/lib/services/config-storage-service";
 import {
@@ -639,7 +642,7 @@ export function ChatScreen({
                 <input
                   ref={documentInputRef}
                   type="file"
-                  accept=".pdf,application/pdf"
+                  accept={DOCUMENT_FILE_ACCEPT}
                   className="hidden"
                   onChange={(event) => void handleDocumentSelect(event)}
                 />

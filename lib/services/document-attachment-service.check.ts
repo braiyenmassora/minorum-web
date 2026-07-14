@@ -1,4 +1,9 @@
-import { prepareDocumentAttachment } from "./document-attachment-service";
+import {
+  prepareDocumentAttachment,
+  isTextDocument,
+  decodeDataUrlText,
+} from "./document-attachment-service";
+import { toApiMessageContent } from "@/lib/models/message-content";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -7,21 +12,39 @@ function assert(condition: boolean, message: string): void {
 }
 
 async function main(): Promise<void> {
-  const bad = new File(["hi"], "notes.md", { type: "text/markdown" });
+  const bad = new File(["hi"], "notes.exe", { type: "application/octet-stream" });
   let rejected = false;
   try {
     await prepareDocumentAttachment(bad);
   } catch {
     rejected = true;
   }
-  assert(rejected, "rejects non-pdf");
+  assert(rejected, "rejects unsupported");
 
   const pdf = new File([new Uint8Array([0x25, 0x50, 0x44, 0x46])], "doc.pdf", {
     type: "application/pdf",
   });
-  const prepared = await prepareDocumentAttachment(pdf);
-  assert(prepared.fileName === "doc.pdf", "name");
-  assert(prepared.dataUrl.startsWith("data:"), "data url");
+  const preparedPdf = await prepareDocumentAttachment(pdf);
+  assert(preparedPdf.fileName === "doc.pdf", "pdf name");
+  assert(preparedPdf.dataUrl.startsWith("data:application/pdf"), "pdf data url");
+  assert(!isTextDocument(preparedPdf.fileName), "pdf not text");
+
+  const py = new File(["print(1)\n"], "main.py", { type: "text/x-python" });
+  const preparedPy = await prepareDocumentAttachment(py);
+  assert(isTextDocument(preparedPy.fileName), "py is text");
+  assert(decodeDataUrlText(preparedPy.dataUrl) === "print(1)\n", "py decode");
+
+  const api = toApiMessageContent([
+    {
+      type: "file_url",
+      file_url: { url: preparedPy.dataUrl, name: preparedPy.fileName },
+    },
+  ]);
+  const apiText = typeof api === "string" ? api : null;
+  assert(apiText !== null, "py → text string");
+  assert(apiText.includes("print(1)"), "py body inlined");
+  assert(apiText.includes("main.py"), "py name inlined");
+
   console.log("document-attachment-service checks passed");
 }
 
