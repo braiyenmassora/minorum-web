@@ -1,6 +1,7 @@
 "use client";
 
-import { Eraser, Plus, Trash2, UserRound } from "lucide-react";
+import Image from "next/image";
+import { Eraser, Plus, Trash2 } from "lucide-react";
 
 import { AppLogo } from "@/components/ui/app-logo";
 import { SystemStatusIndicator } from "@/components/chat/system-status-indicator";
@@ -36,7 +37,7 @@ export function ChatHistorySidebar({
 
   return (
     <aside
-      className="flex h-full w-[280px] shrink-0 flex-col border-r border-border-subtle bg-background"
+      className="relative flex h-full min-h-0 w-[280px] shrink-0 flex-col self-stretch bg-background after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-px after:bg-border-subtle"
       aria-label={copy.title}
     >
       <div className="flex items-center justify-between gap-2 border-b border-border-subtle px-composer py-composer">
@@ -117,9 +118,13 @@ export function ChatHistorySidebar({
           className="flex w-full items-center gap-2.5 rounded-token-sm px-2 py-2 text-left transition-colors hover:bg-surface-raised"
           onClick={onManageAccount}
         >
-          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-raised text-text-secondary">
-            <UserRound className="size-4" aria-hidden />
-          </span>
+          <Image
+            src="/me.jpeg"
+            alt={accountName?.trim() || copy.account}
+            width={32}
+            height={32}
+            className="size-8 shrink-0 rounded-full object-cover"
+          />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-token-body font-medium text-text-primary">
               {accountName?.trim() || copy.account}

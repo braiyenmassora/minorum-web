@@ -558,7 +558,7 @@ export function ChatScreen({
     streaming && messages[messages.length - 1]?.role === "user";
 
   return (
-    <div className="flex h-full min-h-0 flex-1">
+    <div className="flex h-full min-h-0 flex-1 items-stretch">
       <ChatHistorySidebar
         sessions={sessions}
         activeSessionId={activeSessionId}
