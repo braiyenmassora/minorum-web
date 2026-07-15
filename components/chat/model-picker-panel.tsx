@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 
 import type { AppConfig } from "@/lib/core/config/app-config";
-import { getModelDisplayName } from "@/lib/core/config/model-label";
+import {
+  getModelDisplayName,
+  sortModelsForDisplay,
+} from "@/lib/core/config/model-label";
 import { messageForApiError } from "@/lib/core/copy/api-error-message";
 import { getAppCopy } from "@/lib/core/copy/app-copy";
 import { toChatApiError } from "@/lib/services/chat-api-error";
@@ -29,7 +32,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
       try {
         const result = await fetchModels(config);
         if (!cancelled) {
-          setModels(result);
+          setModels(sortModelsForDisplay(result));
           setErrorMessage(null);
         }
       } catch (error) {

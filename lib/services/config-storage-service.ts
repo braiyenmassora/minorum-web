@@ -24,12 +24,17 @@ export function loadConfig(): AppConfig | null {
   const modelName = localStorage.getItem(STORAGE_KEYS.modelName);
   const fullName = localStorage.getItem(STORAGE_KEYS.fullName) ?? "";
 
-  if (!apiBaseUrl || !apiKey || !modelName) {
+  if (!apiBaseUrl || !apiKey) {
     return null;
   }
 
   try {
-    return validateAppConfig({ apiBaseUrl, apiKey, modelName, fullName });
+    return validateAppConfig({
+      apiBaseUrl,
+      apiKey,
+      modelName: modelName ?? "",
+      fullName,
+    });
   } catch {
     return null;
   }

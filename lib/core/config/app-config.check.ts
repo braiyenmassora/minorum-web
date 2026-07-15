@@ -58,6 +58,12 @@ assert(valid.apiKey === "sk-test", "validate keeps api key");
 assert(valid.modelName === "auto", "validate keeps model");
 assert(valid.fullName === "", "validate defaults empty full name");
 
+const withoutModel = validateAppConfig({
+  apiBaseUrl: "https://api.example.com/",
+  apiKey: "sk-test",
+});
+assert(withoutModel.modelName === "", "model optional");
+
 const withName = validateAppConfig({
   apiBaseUrl: "https://api.example.com/",
   apiKey: "sk-test",

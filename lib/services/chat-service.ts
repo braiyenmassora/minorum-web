@@ -121,9 +121,52 @@ export async function fetchModels(
     throw new ChatApiError("unknown");
   }
 
-  return data.data
-    .map((model) => model.id)
-    .filter((id): id is string => typeof id === "string" && id.length > 0);
+  return [
+    ...new Set(
+      data.data
+        .map((model) => model.id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ),
+  ];
+}
+
+function requireModelName(config: AppConfig): string {
+  const model = config.modelName.trim();
+  if (!model) {
+    throw new ChatApiError("unknown");
+  }
+  return model;
+}
+
+async function completeChat({
+  config,
+  messages,
+  signal,
+}: {
+  config: AppConfig;
+  messages: Message[];
+  signal?: AbortSignal;
+}): Promise<string> {
+  const model = requireModelName(config);
+  const { url, headers } = resolveRequestTarget(config, "chat/completions");
+  const response = await fetchWithTimeout(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      model,
+      stream: false,
+      messages: toApiMessages(messages),
+    }),
+    signal,
+    timeoutMs: 120_000,
+  });
+
+  const data = await parseJsonResponse<{
+    choices?: Array<{ message?: { content?: string | null } }>;
+  }>(response);
+
+  const content = data.choices?.[0]?.message?.content;
+  return typeof content === "string" ? content : "";
 }
 
 async function* streamChatAttempt({
@@ -135,12 +178,13 @@ async function* streamChatAttempt({
   messages: Message[];
   signal?: AbortSignal;
 }): AsyncGenerator<string> {
+  const model = requireModelName(config);
   const { url, headers } = resolveRequestTarget(config, "chat/completions");
   const response = await fetchWithTimeout(url, {
     method: "POST",
     headers,
     body: JSON.stringify({
-      model: config.modelName,
+      model,
       stream: true,
       messages: toApiMessages(messages),
     }),
@@ -158,6 +202,7 @@ async function* streamChatAttempt({
   const parser = new ChatStreamParser();
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
+  let yielded = false;
 
   try {
     while (true) {
@@ -169,15 +214,26 @@ async function* streamChatAttempt({
       for (const token of parser.push(
         decoder.decode(value, { stream: true }),
       )) {
+        yielded = true;
         yield token;
       }
     }
 
     for (const token of parser.flush()) {
+      yielded = true;
       yield token;
     }
   } finally {
     reader.releaseLock();
+  }
+
+  // OmniRoute: some providers (e.g. aug) return only `data: [DONE]` for stream.
+  if (!yielded) {
+    const content = await completeChat({ config, messages, signal });
+    if (!content.trim()) {
+      throw new ChatApiError("unknown");
+    }
+    yield content;
   }
 }
 

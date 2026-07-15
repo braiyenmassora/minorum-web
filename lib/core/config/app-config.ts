@@ -33,7 +33,7 @@ export function validateAppConfig(input: Partial<AppConfig>): AppConfig {
   const modelName = input.modelName?.trim() ?? "";
   const fullName = input.fullName?.trim() ?? "";
 
-  if (!apiBaseUrl || !apiKey || !modelName) {
+  if (!apiBaseUrl || !apiKey) {
     throw new Error("Config belum lengkap");
   }
 

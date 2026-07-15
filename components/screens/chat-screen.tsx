@@ -1,6 +1,13 @@
 "use client";
 
-import { ArrowUp, ChevronDown, FileText, ImageIcon } from "lucide-react";
+import {
+  ArrowUp,
+  ChevronDown,
+  FileText,
+  ImageIcon,
+  Menu,
+  Plus,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ChatBubble } from "@/components/chat/chat-bubble";
@@ -13,6 +20,7 @@ import {
 import { ModelPickerPanel } from "@/components/chat/model-picker-panel";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { AppLogo } from "@/components/ui/app-logo";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import type { AppConfig } from "@/lib/core/config/app-config";
 import { getModelDisplayName } from "@/lib/core/config/model-label";
 import { messageForApiError } from "@/lib/core/copy/api-error-message";
@@ -36,7 +44,8 @@ import {
   DOCUMENT_FILE_ACCEPT,
   prepareDocumentAttachment,
 } from "@/lib/services/document-attachment-service";
-import { streamChat } from "@/lib/services/chat-service";
+import { resolveModelSelection } from "@/lib/core/config/model-label";
+import { fetchModels, streamChat } from "@/lib/services/chat-service";
 import { updateConfigModel } from "@/lib/services/config-storage-service";
 import {
   probeSystemStatus,
@@ -52,7 +61,7 @@ import {
 
 type ChatScreenProps = {
   config: AppConfig;
-  onManageAccount: () => void;
+  onLogout: () => void;
 };
 
 type PendingDocument = {
@@ -68,7 +77,7 @@ function createId(): string {
 
 export function ChatScreen({
   config: initialConfig,
-  onManageAccount,
+  onLogout,
 }: ChatScreenProps) {
   const copy = getAppCopy();
   const [config, setConfig] = useState(initialConfig);
@@ -93,6 +102,7 @@ export function ChatScreen({
     formatJakartaEmptySubtitle,
   );
   const [systemStatus, setSystemStatus] = useState<SystemStatus>("checking");
+  const [historyOpen, setHistoryOpen] = useState(false);
   const serverClockOffsetMsRef = useRef(0);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -183,6 +193,35 @@ export function ChatScreen({
   }, [input, adjustTextareaHeight]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const models = await fetchModels(config);
+        if (cancelled || models.length === 0) {
+          return;
+        }
+
+        setConfig((current) => {
+          const resolved = resolveModelSelection(current.modelName, models);
+          if (!resolved || resolved === current.modelName) {
+            return current;
+          }
+          return updateConfigModel(current, resolved);
+        });
+      } catch {
+        // User can pick manually from the model list.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // Re-resolve when API endpoint changes or model is missing/stale on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- modelName read via setConfig
+  }, [config.apiBaseUrl, config.apiKey]);
+
+  useEffect(() => {
     const container = scrollRef.current;
     const lastMessageEl = lastMessageRef.current;
     if (!container) {
@@ -207,6 +246,7 @@ export function ChatScreen({
   }, [messages, streaming]);
 
   const canSend =
+    Boolean(config.modelName.trim()) &&
     (input.trim().length > 0 ||
       pendingImage !== null ||
       pendingDocument !== null) &&
@@ -294,7 +334,7 @@ export function ChatScreen({
 
   const streamFromHistory = useCallback(
     async (history: Message[]) => {
-      if (streaming || history.length === 0) {
+      if (streaming || history.length === 0 || !config.modelName.trim()) {
         return;
       }
 
@@ -407,7 +447,11 @@ export function ChatScreen({
       const text = (rawText ?? input).trim();
       const imageDataUrl = pendingImage;
       const document = pendingDocument;
-      if ((!text && !imageDataUrl && !document) || streaming) {
+      if (
+        !config.modelName.trim() ||
+        (!text && !imageDataUrl && !document) ||
+        streaming
+      ) {
         return;
       }
 
@@ -423,12 +467,19 @@ export function ChatScreen({
       setPendingDocument(null);
       await streamFromHistory(history);
     },
-    [input, pendingDocument, pendingImage, streaming, streamFromHistory],
+    [
+      input,
+      pendingDocument,
+      pendingImage,
+      streaming,
+      streamFromHistory,
+      config.modelName,
+    ],
   );
 
   const handleRetryUser = useCallback(
     (messageId: string) => {
-      if (streaming) {
+      if (streaming || !config.modelName.trim()) {
         return;
       }
 
@@ -441,7 +492,7 @@ export function ChatScreen({
 
       void streamFromHistory(messagesRef.current.slice(0, index + 1));
     },
-    [streaming, streamFromHistory],
+    [streaming, streamFromHistory, config.modelName],
   );
 
   async function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
@@ -497,10 +548,12 @@ export function ChatScreen({
 
   function handleNewChat() {
     startNewSession();
+    setHistoryOpen(false);
   }
 
   function handleSelectSession(sessionId: string) {
     if (sessionId === activeSessionId) {
+      setHistoryOpen(false);
       return;
     }
 
@@ -523,6 +576,7 @@ export function ChatScreen({
     setErrorMessage(null);
     setStreaming(false);
     setModelPickerOpen(false);
+    setHistoryOpen(false);
   }
 
   function handleDeleteSession(sessionId: string) {
@@ -542,6 +596,23 @@ export function ChatScreen({
     clearChatSessions();
     refreshSessions();
     startNewSession();
+    setHistoryOpen(false);
+  }
+
+  function handleComposerKeyDown(
+    event: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+
+    // Soft keyboards: Enter = newline; send via the button.
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      return;
+    }
+
+    event.preventDefault();
+    void handleSend();
   }
 
   function handleModelSelect(modelName: string) {
@@ -557,21 +628,64 @@ export function ChatScreen({
   const showTyping =
     streaming && messages[messages.length - 1]?.role === "user";
 
+  const sidebarProps = {
+    sessions,
+    activeSessionId,
+    accountName: config.fullName,
+    systemStatus,
+    onNewChat: handleNewChat,
+    onSelect: handleSelectSession,
+    onDelete: handleDeleteSession,
+    onClearAll: handleClearAllSessions,
+    onLogout,
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-1 items-stretch">
-      <ChatHistorySidebar
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        accountName={config.fullName}
-        systemStatus={systemStatus}
-        onNewChat={handleNewChat}
-        onSelect={handleSelectSession}
-        onDelete={handleDeleteSession}
-        onClearAll={handleClearAllSessions}
-        onManageAccount={onManageAccount}
-      />
+      <ChatHistorySidebar {...sidebarProps} className="hidden md:flex" />
+
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent
+          side="left"
+          showCloseButton={false}
+          className="w-[min(280px,85vw)] gap-0 border-0 p-0 sm:max-w-[280px]"
+        >
+          <SheetTitle className="sr-only">
+            {copy.chat_history_sidebar.title}
+          </SheetTitle>
+          <ChatHistorySidebar
+            {...sidebarProps}
+            className="w-full after:hidden"
+          />
+        </SheetContent>
+      </Sheet>
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex shrink-0 items-center gap-2 border-b border-border-subtle px-[var(--content-inset)] pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-2 md:hidden">
+          <button
+            type="button"
+            className="inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+            onClick={() => setHistoryOpen(true)}
+            aria-label={copy.chat_history_sidebar.title}
+          >
+            <Menu className="size-5" />
+          </button>
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <AppLogo size={28} className="shrink-0 rounded-full" />
+            <span className="truncate text-token-body font-medium text-text-primary">
+              Minorum
+            </span>
+          </div>
+          <button
+            type="button"
+            className="inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+            onClick={handleNewChat}
+            aria-label={copy.chat_history_sidebar.new_chat}
+          >
+            <Plus className="size-5" />
+          </button>
+        </header>
+
         <div
           ref={scrollRef}
           className="chat-scroll scroll-pb-composer-top scroll-pt-composer-top min-h-0 flex-1 overflow-y-auto px-[var(--content-inset)]"
@@ -721,16 +835,12 @@ export function ChatScreen({
                   ref={textareaRef}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      void handleSend();
-                    }
-                  }}
+                  onKeyDown={handleComposerKeyDown}
                   rows={1}
+                  enterKeyHint="enter"
                   placeholder="Type a message"
                   disabled={streaming}
-                  className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none bg-transparent px-0 py-[7px] text-token-body leading-[1.5] outline-none placeholder:text-text-muted disabled:opacity-50"
+                  className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none bg-transparent px-0 py-[7px] text-base leading-[1.5] outline-none placeholder:text-text-muted disabled:opacity-50 md:text-token-body"
                 />
                 <button
                   type="button"

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fira_Code, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -24,6 +24,18 @@ export const metadata: Metadata = {
     icon: "/logo.jpeg",
     apple: "/logo.jpeg",
   },
+  appleWebApp: {
+    capable: true,
+    title: "Minorum",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#000000",
 };
 
 export default function RootLayout({

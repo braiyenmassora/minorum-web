@@ -3,22 +3,27 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { SetupScreen } from "@/components/screens/setup-screen";
 import { ChatScreen } from "@/components/screens/chat-screen";
 import type { AppConfig } from "@/lib/core/config/app-config";
 import { loadAppCopy } from "@/lib/core/copy/app-copy";
-import type { SetupDefaults } from "@/lib/core/config/setup-defaults";
+import { clearChatSessions } from "@/lib/services/chat-history-storage-service";
 import { clearConfig, loadConfig } from "@/lib/services/config-storage-service";
 
 loadAppCopy();
 
-type AppGateProps = {
-  devDefaults?: SetupDefaults;
-};
+async function logoutAndReset(): Promise<void> {
+  clearConfig();
+  clearChatSessions();
+  try {
+    await fetch("/api/gate", { method: "DELETE" });
+  } catch {
+    // Still leave the app even if cookie clear fails.
+  }
+  window.location.replace("/welcome");
+}
 
-export function AppGate({ devDefaults }: AppGateProps) {
+export function AppGate() {
   const [config, setConfig] = useState<AppConfig | null>(null);
-  const [setupOpen, setSetupOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,12 +34,18 @@ export function AppGate({ devDefaults }: AppGateProps) {
         window.history.replaceState({}, "", window.location.pathname);
       }
 
-      setConfig(loadConfig());
+      const loaded = loadConfig();
+      if (!loaded) {
+        window.location.replace("/welcome");
+        return;
+      }
+
+      setConfig(loaded);
       setLoading(false);
     });
   }, []);
 
-  if (loading) {
+  if (loading || !config) {
     return (
       <main className="inset-screen flex flex-1 flex-col items-center justify-center">
         <Loader2
@@ -47,30 +58,7 @@ export function AppGate({ devDefaults }: AppGateProps) {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
-      {config ? (
-        <div
-          className={
-            setupOpen ? "hidden" : "flex min-h-0 w-full flex-1 flex-col"
-          }
-        >
-          <ChatScreen
-            config={config}
-            onManageAccount={() => setSetupOpen(true)}
-          />
-        </div>
-      ) : null}
-
-      {!config || setupOpen ? (
-        <SetupScreen
-          devDefaults={devDefaults}
-          initialConfig={config ?? undefined}
-          onComplete={(next) => {
-            setConfig(next);
-            setSetupOpen(false);
-          }}
-          onCancel={config ? () => setSetupOpen(false) : undefined}
-        />
-      ) : null}
+      <ChatScreen config={config} onLogout={() => void logoutAndReset()} />
     </div>
   );
 }

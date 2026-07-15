@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Minorum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      background: #000;
+      color: #e9edef;
+      font-family: Geist, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+      max-width: 22rem;
+    }
+    img {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+    .copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    h1 {
+      font-size: 24px;
+      line-height: 1.2;
+      font-weight: 500;
+      letter-spacing: -0.48px;
+      color: #e9edef;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.5;
+      font-weight: 400;
+      color: #8696a0;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    input {
+      width: 100%;
+      height: 40px;
+      border-radius: 7px;
+      border: 1px solid #141a1d;
+      background: #000;
+      color: #e9edef;
+      font: inherit;
+      font-size: 13px;
+      padding: 0 12px;
+      outline: none;
+      text-align: center;
+    }
+    input:focus {
+      border-color: #1a2226;
+    }
+    input::placeholder {
+      color: #8696a0;
+    }
+    button {
+      height: 40px;
+      margin-top: 0.5rem;
+      border: 0;
+      border-radius: 7px;
+      background: #144d37;
+      color: #fff;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    .error {
+      font-size: 13px;
+      color: #ff4d4f;
+      min-height: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/logo.jpeg" alt="Minorum" width="56" height="56" />
+    <div class="copy">
+      <h1>Lost in Space?</h1>
+      <p>Log in to find your way back.</p>
+    </div>
+    <form id="gate" autocomplete="on">
+      <input
+        id="full-name"
+        name="full-name"
+        type="text"
+        placeholder="Your Name"
+        required
+        autofocus
+        autocomplete="name"
+      />
+      <input
+        id="password"
+        name="password"
+        type="password"
+        placeholder="Password"
+        required
+        autocomplete="current-password"
+      />
+      <button type="submit" id="login" disabled>Login</button>
+      <p class="error" id="error" aria-live="polite"></p>
+    </form>
+  </main>
+  <script>
+    const STORAGE = {
+      apiBaseUrl: "api_base_url",
+      apiKey: "api_key",
+      modelName: "model_name",
+      fullName: "full_name",
+    };
+
+    const form = document.getElementById("gate");
+    const fullName = document.getElementById("full-name");
+    const password = document.getElementById("password");
+    const error = document.getElementById("error");
+    const button = document.getElementById("login");
+
+    function syncLoginEnabled() {
+      button.disabled = password.value.trim().length === 0;
+    }
+
+    fullName.value = localStorage.getItem(STORAGE.fullName) || "";
+    password.addEventListener("input", syncLoginEnabled);
+    syncLoginEnabled();
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (password.value.trim().length === 0) {
+        return;
+      }
+      error.textContent = "";
+      button.disabled = true;
+      try {
+        const name = fullName.value.trim();
+        if (!name) {
+          error.textContent = "Your Name required";
+          return;
+        }
+
+        const response = await fetch("/api/gate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: password.value }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload.ok !== true) {
+          error.textContent =
+            typeof payload.message === "string"
+              ? payload.message
+              : response.status === 401
+                ? "Wrong password"
+                : "Connection failed";
+          if (error.textContent === "Wrong password") {
+            password.select();
+          }
+          return;
+        }
+
+        const config = payload.config || {};
+        if (!config.apiBaseUrl || !config.apiKey) {
+          error.textContent = "Server API config missing";
+          return;
+        }
+
+        localStorage.setItem(STORAGE.apiBaseUrl, config.apiBaseUrl);
+        localStorage.setItem(STORAGE.apiKey, config.apiKey);
+        localStorage.setItem(
+          STORAGE.modelName,
+          typeof config.modelName === "string" ? config.modelName : "",
+        );
+        localStorage.setItem(STORAGE.fullName, name);
+
+        window.location.href = "/";
+      } catch (err) {
+        error.textContent =
+          err instanceof Error ? err.message : "Network error";
+      } finally {
+        syncLoginEnabled();
+      }
+    });
+  </script>
+</body>
+</html>

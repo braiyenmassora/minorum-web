@@ -109,6 +109,13 @@
   --chat-composer-bottom-inset: 35px;
   --chat-composer-top-inset: 32px;
 
+  @media (max-width: 767px) {
+    --composer-icon-size: 44px;
+    --chat-composer-bottom-inset: 12px;
+    --chat-composer-top-inset: 16px;
+    --content-inset: 12px;
+  }
+
   --shadow-floating: 0 2px 12px rgba(0, 0, 0, 0.6);
   --shadow-modal: 0 4px 24px rgba(0, 0, 0, 0.7);
 

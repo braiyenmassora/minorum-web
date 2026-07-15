@@ -21,6 +21,7 @@ export function AppLogo({
       height={size}
       className={cn("rounded-token object-cover", className)}
       priority={priority}
+      unoptimized
     />
   );
 }

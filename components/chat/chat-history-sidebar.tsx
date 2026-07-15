@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Eraser, Plus, Trash2 } from "lucide-react";
+import { Eraser, LogOut, Plus, Trash2 } from "lucide-react";
 
 import { AppLogo } from "@/components/ui/app-logo";
 import { SystemStatusIndicator } from "@/components/chat/system-status-indicator";
@@ -19,7 +19,8 @@ type ChatHistorySidebarProps = {
   onSelect: (sessionId: string) => void;
   onDelete: (sessionId: string) => void;
   onClearAll: () => void;
-  onManageAccount: () => void;
+  onLogout: () => void;
+  className?: string;
 };
 
 export function ChatHistorySidebar({
@@ -31,18 +32,23 @@ export function ChatHistorySidebar({
   onSelect,
   onDelete,
   onClearAll,
-  onManageAccount,
+  onLogout,
+  className,
 }: ChatHistorySidebarProps) {
   const copy = getAppCopy().chat_history_sidebar;
+  const displayName = accountName?.trim() || copy.account;
 
   return (
     <aside
-      className="relative flex h-full min-h-0 w-[280px] shrink-0 flex-col self-stretch bg-background after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-px after:bg-border-subtle"
+      className={cn(
+        "relative flex h-full min-h-0 w-[280px] shrink-0 flex-col self-stretch bg-background after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-px after:bg-border-subtle",
+        className,
+      )}
       aria-label={copy.title}
     >
       <div className="flex items-center justify-between gap-2 border-b border-border-subtle px-composer py-composer">
         <div className="flex min-w-0 items-center gap-2">
-          <AppLogo size={24} className="shrink-0 rounded-full" />
+          <AppLogo size={24} className="shrink-0 rounded-full" priority />
           <h2 className="truncate text-token-body font-medium text-text-primary">
             {copy.title}
           </h2>
@@ -50,7 +56,7 @@ export function ChatHistorySidebar({
         <div className="flex shrink-0 items-center gap-0.5">
           <button
             type="button"
-            className="inline-flex size-7 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-error disabled:opacity-40"
+            className="inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-error disabled:opacity-40 md:size-7"
             onClick={onClearAll}
             disabled={sessions.length === 0}
             aria-label={copy.clear_all}
@@ -60,7 +66,7 @@ export function ChatHistorySidebar({
           </button>
           <button
             type="button"
-            className="inline-flex size-7 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+            className="inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary md:size-7"
             onClick={onNewChat}
             aria-label={copy.new_chat}
             title={copy.new_chat}
@@ -96,7 +102,7 @@ export function ChatHistorySidebar({
                   </button>
                   <button
                     type="button"
-                    className="absolute top-1/2 right-1 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-token-sm text-text-muted opacity-70 transition-opacity hover:bg-surface-raised hover:text-error focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="absolute top-1/2 right-1 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-token-sm text-text-muted opacity-70 transition-opacity hover:bg-surface-raised hover:text-error focus-visible:opacity-100 md:size-7 md:opacity-0 md:group-hover:opacity-100"
                     onClick={(event) => {
                       event.stopPropagation();
                       onDelete(session.id);
@@ -113,25 +119,34 @@ export function ChatHistorySidebar({
       </div>
 
       <div className="border-t border-border-subtle p-2">
-        <button
-          type="button"
-          className="flex w-full items-center gap-2.5 rounded-token-sm px-2 py-2 text-left transition-colors hover:bg-surface-raised"
-          onClick={onManageAccount}
-        >
-          <Image
-            src="/me.jpeg"
-            alt={accountName?.trim() || copy.account}
-            width={32}
-            height={32}
-            className="size-8 shrink-0 rounded-full object-cover"
-          />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-token-body font-medium text-text-primary">
-              {accountName?.trim() || copy.account}
+        <div className="flex items-center gap-1 rounded-token-sm px-2 py-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            <Image
+              src="/me.jpeg"
+              alt={displayName}
+              width={32}
+              height={32}
+              className="size-8 shrink-0 rounded-full object-cover"
+              priority
+              unoptimized
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-token-body font-medium text-text-primary">
+                {displayName}
+              </span>
+              <SystemStatusIndicator status={systemStatus} className="mt-0.5" />
             </span>
-            <SystemStatusIndicator status={systemStatus} className="mt-0.5" />
-          </span>
-        </button>
+          </div>
+          <button
+            type="button"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-error md:size-7"
+            onClick={onLogout}
+            aria-label="Logout"
+            title="Logout"
+          >
+            <LogOut className="size-3.5" />
+          </button>
+        </div>
       </div>
     </aside>
   );

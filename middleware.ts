@@ -7,6 +7,9 @@ const ALLOWED_HOSTS = new Set([
   "127.0.0.1",
 ]);
 
+const GATE_COOKIE = "minorum_gate";
+const GATE_COOKIE_VALUE = "1";
+
 function requestHost(request: NextRequest): string {
   const raw =
     request.headers.get("x-forwarded-host") ??
@@ -15,44 +18,8 @@ function requestHost(request: NextRequest): string {
   return raw.split(",")[0]?.trim().split(":")[0]?.toLowerCase() ?? "";
 }
 
-function requestIp(request: NextRequest): string {
-  // Cloudflare orange-cloud → Vercel: trust CF's client IP first.
-  const cf = request.headers.get("cf-connecting-ip")?.trim();
-  if (cf) {
-    return cf;
-  }
-
-  const vercel = request.headers.get("x-vercel-forwarded-for");
-  if (vercel) {
-    return vercel.split(",")[0]?.trim() ?? "";
-  }
-
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() ?? "";
-  }
-
-  return request.headers.get("x-real-ip")?.trim() ?? "";
-}
-
-function allowedIps(): Set<string> | null {
-  const raw = process.env.ALLOWED_IPS?.trim();
-  if (!raw) {
-    return null;
-  }
-
-  return new Set(
-    raw
-      .split(",")
-      .map((ip) => ip.trim())
-      .filter(Boolean),
-  );
-}
-
-function forbidden(request: NextRequest): NextResponse {
-  return NextResponse.rewrite(new URL("/lost.html", request.url), {
-    status: 403,
-  });
+function rewriteWelcome(request: NextRequest): NextResponse {
+  return NextResponse.rewrite(new URL("/welcome.html", request.url));
 }
 
 export function middleware(request: NextRequest) {
@@ -60,23 +27,23 @@ export function middleware(request: NextRequest) {
   const isLocal = ALLOWED_HOSTS.has(host) && host !== "ai.dealwithsign.com";
 
   if (!(ALLOWED_HOSTS.has(host) || host.endsWith(".localhost"))) {
-    return forbidden(request);
+    return rewriteWelcome(request);
   }
 
-  // Optional IP allowlist (production). Skip on localhost for local dev.
-  const ips = allowedIps();
-  if (ips && !isLocal) {
-    const ip = requestIp(request);
-    if (!ip || !ips.has(ip)) {
-      return forbidden(request);
-    }
+  // Localhost skips cookie gate; AppGate still redirects to /welcome if no config.
+  if (isLocal || host.endsWith(".localhost")) {
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  if (request.cookies.get(GATE_COOKIE)?.value === GATE_COOKIE_VALUE) {
+    return NextResponse.next();
+  }
+
+  return rewriteWelcome(request);
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|logo.jpeg|me.jpeg|lost.html).*)",
+    "/((?!_next/static|_next/image|favicon.ico|logo.jpeg|me.jpeg|welcome|welcome.html|api/gate).*)",
   ],
 };
