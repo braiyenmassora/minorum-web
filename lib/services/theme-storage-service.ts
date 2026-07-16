@@ -6,6 +6,7 @@ export type ThemeMode = "dark" | "light";
 
 const STORAGE_KEY = "minorum_theme";
 const THEME_EVENT = "minorum-theme";
+const DEFAULT_THEME: ThemeMode = "dark";
 
 function readStoredTheme(): ThemeMode {
   try {
@@ -13,10 +14,12 @@ function readStoredTheme(): ThemeMode {
     if (stored === "light" || stored === "dark") {
       return stored;
     }
+    // First visit: persist dark so later loads stay dark until user toggles.
+    localStorage.setItem(STORAGE_KEY, DEFAULT_THEME);
   } catch {
     // ignore
   }
-  return "dark";
+  return DEFAULT_THEME;
 }
 
 function applyTheme(theme: ThemeMode): void {
@@ -26,7 +29,7 @@ function applyTheme(theme: ThemeMode): void {
 }
 
 export function useThemeMode() {
-  const [theme, setThemeState] = useState<ThemeMode>("dark");
+  const [theme, setThemeState] = useState<ThemeMode>(DEFAULT_THEME);
 
   useEffect(() => {
     const sync = () => {

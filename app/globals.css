@@ -4,21 +4,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Minorum design tokens — light default; .dark overrides below */
+/* Minorum design tokens — dark is the product default; light via html:not(.dark) */
 :root {
-  --color-background: #f0f2f5;
-  --color-surface: #ffffff;
-  --color-surface-raised: #e9edef;
+  --color-background: #000000;
+  --color-surface: #1a2226;
+  --color-surface-raised: #111b21;
 
-  --color-assistant-bubble: #ffffff;
-  /* User bubble + send keep dark-mode green in light theme */
+  --color-assistant-bubble: #242626;
   --color-user-bubble: #144d37;
   --color-composer: var(--color-assistant-bubble);
-  --color-border: #d1d7db;
-  --color-border-subtle: #e9edef;
+  --color-border: #1a2226;
+  --color-border-subtle: #141a1d;
 
-  --color-text-primary: #111b21;
-  --color-text-secondary: #667781;
+  --color-text-primary: #e9edef;
+  --color-text-secondary: #8696a0;
   --color-text-muted: #8696a0;
   --color-text-on-accent: #ffffff;
   --color-text-on-user: #ffffff;
@@ -28,17 +27,16 @@
 
   --color-success: #00a884;
   --color-warning: #f5a623;
-  --color-error: #ea4335;
+  --color-error: #ff4d4f;
 
-  /* Send/disabled affordances match dark mode */
   --color-disabled-bg: #141a1d;
   --color-disabled-text: #8696a0;
 
-  --color-splash: rgba(17, 27, 33, 0.06);
-  --color-highlight: rgba(17, 27, 33, 0.06);
+  --color-splash: rgba(255, 255, 255, 0.06);
+  --color-highlight: rgba(255, 255, 255, 0.06);
   --color-focus-overlay: rgba(0, 168, 132, 0.12);
-  --color-pressed-overlay: rgba(17, 27, 33, 0.08);
-  --color-hover-overlay: rgba(17, 27, 33, 0.04);
+  --color-pressed-overlay: rgba(255, 255, 255, 0.1);
+  --color-hover-overlay: rgba(255, 255, 255, 0.05);
 
   --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", monospace;
@@ -125,8 +123,8 @@
     --chat-markdown-line-height: 1.6;
   }
 
-  --shadow-floating: 0 2px 12px rgba(17, 27, 33, 0.12);
-  --shadow-modal: 0 4px 24px rgba(17, 27, 33, 0.18);
+  --shadow-floating: 0 2px 12px rgba(0, 0, 0, 0.6);
+  --shadow-modal: 0 4px 24px rgba(0, 0, 0, 0.7);
 
   /* shadcn/ui aliases — map ke Minorum tokens */
   --background: var(--color-background);
@@ -260,19 +258,20 @@ body {
   touch-action: manipulation;
 }
 
-.dark {
-  --color-background: #000000;
-  --color-surface: #1a2226;
-  --color-surface-raised: #111b21;
+/* Light mode — only when .dark is removed */
+html:not(.dark) {
+  --color-background: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-surface-raised: #e9edef;
 
-  --color-assistant-bubble: #242626;
+  --color-assistant-bubble: #ffffff;
   --color-user-bubble: #144d37;
   --color-composer: var(--color-assistant-bubble);
-  --color-border: #1a2226;
-  --color-border-subtle: #141a1d;
+  --color-border: #d1d7db;
+  --color-border-subtle: #e9edef;
 
-  --color-text-primary: #e9edef;
-  --color-text-secondary: #8696a0;
+  --color-text-primary: #111b21;
+  --color-text-secondary: #667781;
   --color-text-muted: #8696a0;
   --color-text-on-accent: #ffffff;
   --color-text-on-user: #ffffff;
@@ -282,38 +281,19 @@ body {
 
   --color-success: #00a884;
   --color-warning: #f5a623;
-  --color-error: #ff4d4f;
+  --color-error: #ea4335;
 
   --color-disabled-bg: #141a1d;
   --color-disabled-text: #8696a0;
 
-  --color-splash: rgba(255, 255, 255, 0.06);
-  --color-highlight: rgba(255, 255, 255, 0.06);
+  --color-splash: rgba(17, 27, 33, 0.06);
+  --color-highlight: rgba(17, 27, 33, 0.06);
   --color-focus-overlay: rgba(0, 168, 132, 0.12);
-  --color-pressed-overlay: rgba(255, 255, 255, 0.1);
-  --color-hover-overlay: rgba(255, 255, 255, 0.05);
+  --color-pressed-overlay: rgba(17, 27, 33, 0.08);
+  --color-hover-overlay: rgba(17, 27, 33, 0.04);
 
-  --shadow-floating: 0 2px 12px rgba(0, 0, 0, 0.6);
-  --shadow-modal: 0 4px 24px rgba(0, 0, 0, 0.7);
-
-  --background: var(--color-background);
-  --foreground: var(--color-text-primary);
-  --card: var(--color-surface);
-  --card-foreground: var(--color-text-primary);
-  --popover: var(--color-surface-raised);
-  --popover-foreground: var(--color-text-primary);
-  --primary: var(--color-accent-primary);
-  --primary-foreground: var(--color-text-on-accent);
-  --secondary: var(--color-surface-raised);
-  --secondary-foreground: var(--color-text-primary);
-  --muted: var(--color-surface);
-  --muted-foreground: var(--color-text-muted);
-  --accent: var(--color-surface-raised);
-  --accent-foreground: var(--color-text-primary);
-  --destructive: var(--color-error);
-  --border: var(--color-border);
-  --input: var(--color-border-subtle);
-  --ring: var(--color-focus-ring);
+  --shadow-floating: 0 2px 12px rgba(17, 27, 33, 0.12);
+  --shadow-modal: 0 4px 24px rgba(17, 27, 33, 0.18);
 }
 
 @layer base {
