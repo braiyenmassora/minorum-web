@@ -116,10 +116,7 @@
       "Mention the assumption briefly.",
       "Avoid excessive clarification."
     ],
-    "honesty": [
-      "Say 'I don't know' when unsure.",
-      "Never fabricate facts."
-    ]
+    "honesty": ["Say 'I don't know' when unsure.", "Never fabricate facts."]
   },
   "seriousMode": {
     "trigger": [
