@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Minorum</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,13 +17,18 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100dvh;
+      min-height: 100svh;
       display: grid;
       place-items: center;
       background: #000;
       color: #e9edef;
       font-family: Geist, ui-sans-serif, system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
-      padding: 1.5rem;
+      -webkit-tap-highlight-color: transparent;
+      padding: max(1.5rem, env(safe-area-inset-top, 0px))
+        max(1.5rem, env(safe-area-inset-right, 0px))
+        max(1.5rem, env(safe-area-inset-bottom, 0px))
+        max(1.5rem, env(safe-area-inset-left, 0px));
       text-align: center;
     }
     main {
@@ -64,13 +72,13 @@
     }
     input {
       width: 100%;
-      height: 40px;
+      height: 44px;
       border-radius: 7px;
       border: 1px solid #141a1d;
       background: #000;
       color: #e9edef;
       font: inherit;
-      font-size: 13px;
+      font-size: 16px;
       padding: 0 12px;
       outline: none;
       text-align: center;
@@ -82,7 +90,7 @@
       color: #8696a0;
     }
     button {
-      height: 40px;
+      height: 44px;
       margin-top: 0.5rem;
       border: 0;
       border-radius: 7px;

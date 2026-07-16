@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Eraser, LogOut, Plus, Trash2 } from "lucide-react";
 
 import { AppLogo } from "@/components/ui/app-logo";
+import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
 import { SystemStatusIndicator } from "@/components/chat/system-status-indicator";
 import type { ChatSession } from "@/lib/models/chat-session";
 import { getAppCopy } from "@/lib/core/copy/app-copy";
@@ -49,7 +50,7 @@ export function ChatHistorySidebar({
       <div className="flex items-center justify-between gap-2 border-b border-border-subtle px-composer py-composer">
         <div className="flex min-w-0 items-center gap-2">
           <AppLogo size={24} className="shrink-0 rounded-full" priority />
-          <h2 className="truncate text-token-body font-medium text-text-primary">
+          <h2 className="font-display truncate text-token-body font-extrabold tracking-tight text-text-primary">
             {copy.title}
           </h2>
         </div>
@@ -73,6 +74,7 @@ export function ChatHistorySidebar({
           >
             <Plus className="size-4" />
           </button>
+          <ThemeToggleButton />
         </div>
       </div>
 
@@ -118,7 +120,7 @@ export function ChatHistorySidebar({
         )}
       </div>
 
-      <div className="border-t border-border-subtle p-2">
+      <div className="border-t border-border-subtle p-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]">
         <div className="flex items-center gap-1 rounded-token-sm px-2 py-2">
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
             <Image
@@ -131,7 +133,7 @@ export function ChatHistorySidebar({
               unoptimized
             />
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-token-body font-medium text-text-primary">
+              <span className="font-display block truncate text-token-body font-extrabold tracking-tight text-text-primary">
                 {displayName}
               </span>
               <SystemStatusIndicator status={systemStatus} className="mt-0.5" />

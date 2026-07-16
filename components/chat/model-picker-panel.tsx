@@ -86,7 +86,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
   );
 
   return (
-    <div className="border-b border-border-subtle px-composer py-composer">
+    <div className="flex min-h-0 flex-col border-b border-border-subtle px-composer py-composer">
       {!loading && !errorMessage && groups.length > 0 ? (
         <input
           type="search"
@@ -94,7 +94,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
           onChange={(event) => setQuery(event.target.value)}
           placeholder={copy.search_hint}
           aria-label={copy.search_hint}
-          className="mb-2 h-8 w-full min-w-0 rounded-token-sm border border-border-subtle bg-background px-2.5 text-token-body-medium text-text-primary outline-none placeholder:text-text-muted focus-visible:border-sidebar-border"
+          className="mb-2 h-10 w-full min-w-0 shrink-0 rounded-token-sm border border-border-subtle bg-background px-2.5 text-base text-text-primary outline-none placeholder:text-text-muted focus-visible:border-sidebar-border md:h-8 md:text-token-body-medium"
         />
       ) : null}
 
@@ -116,10 +116,10 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
         </p>
       ) : null}
 
-      <div className="flex max-h-56 flex-col gap-2 overflow-y-auto">
+      <div className="flex max-h-[min(40dvh,14rem)] flex-col gap-2 overflow-y-auto overscroll-contain md:max-h-56">
         {filtered.map((group) => (
           <div key={group.category} className="flex flex-col gap-1">
-            <p className="px-2 pt-1 text-token-body-medium font-bold text-white">
+            <p className="px-2 pt-1 text-token-body-medium font-bold text-text-primary">
               {group.category}
             </p>
             {group.models.map((entry: ModelEntry) => {

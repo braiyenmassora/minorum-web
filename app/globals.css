@@ -4,41 +4,45 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Minorum design tokens — dark mode (WhatsApp accents, true black base) */
+/* Minorum design tokens — light default; .dark overrides below */
 :root {
-  --color-background: #000000;
-  --color-surface: #1a2226;
-  --color-surface-raised: #111b21;
+  --color-background: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-surface-raised: #e9edef;
 
-  --color-assistant-bubble: #242626;
+  --color-assistant-bubble: #ffffff;
+  /* User bubble + send keep dark-mode green in light theme */
   --color-user-bubble: #144d37;
   --color-composer: var(--color-assistant-bubble);
-  --color-border: #1a2226;
-  --color-border-subtle: #141a1d;
+  --color-border: #d1d7db;
+  --color-border-subtle: #e9edef;
 
-  --color-text-primary: #e9edef;
-  --color-text-secondary: #8696a0;
+  --color-text-primary: #111b21;
+  --color-text-secondary: #667781;
   --color-text-muted: #8696a0;
   --color-text-on-accent: #ffffff;
+  --color-text-on-user: #ffffff;
 
   --color-accent-primary: #00a884;
   --color-focus-ring: #53bdeb;
 
   --color-success: #00a884;
   --color-warning: #f5a623;
-  --color-error: #ff4d4f;
+  --color-error: #ea4335;
 
+  /* Send/disabled affordances match dark mode */
   --color-disabled-bg: #141a1d;
   --color-disabled-text: #8696a0;
 
-  --color-splash: rgba(255, 255, 255, 0.06);
-  --color-highlight: rgba(255, 255, 255, 0.06);
+  --color-splash: rgba(17, 27, 33, 0.06);
+  --color-highlight: rgba(17, 27, 33, 0.06);
   --color-focus-overlay: rgba(0, 168, 132, 0.12);
-  --color-pressed-overlay: rgba(255, 255, 255, 0.1);
-  --color-hover-overlay: rgba(255, 255, 255, 0.05);
+  --color-pressed-overlay: rgba(17, 27, 33, 0.08);
+  --color-hover-overlay: rgba(17, 27, 33, 0.04);
 
   --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", monospace;
+  --font-display: var(--font-funnel-display), var(--font-sans);
 
   --text-display-large-size: 32px;
   --text-display-large-weight: 500;
@@ -103,7 +107,9 @@
   --sheet-drag-handle-height: 24px;
   --chat-max-width: 860px;
   --setup-max-width: 360px;
-  --chat-message-gap: var(--spacing-lg);
+  --chat-message-gap: var(--spacing-xl);
+  --chat-markdown-block-gap: 0.85rem;
+  --chat-markdown-line-height: 1.65;
   --chat-composer-padding-x: var(--spacing-md);
   --chat-composer-padding-y: var(--spacing-md);
   --chat-composer-bottom-inset: 35px;
@@ -111,13 +117,16 @@
 
   @media (max-width: 767px) {
     --composer-icon-size: 44px;
-    --chat-composer-bottom-inset: 12px;
-    --chat-composer-top-inset: 16px;
+    --chat-composer-bottom-inset: 10px;
+    --chat-composer-top-inset: 12px;
     --content-inset: 12px;
+    --chat-message-gap: 1.25rem;
+    --chat-markdown-block-gap: 0.75rem;
+    --chat-markdown-line-height: 1.6;
   }
 
-  --shadow-floating: 0 2px 12px rgba(0, 0, 0, 0.6);
-  --shadow-modal: 0 4px 24px rgba(0, 0, 0, 0.7);
+  --shadow-floating: 0 2px 12px rgba(17, 27, 33, 0.12);
+  --shadow-modal: 0 4px 24px rgba(17, 27, 33, 0.18);
 
   /* shadcn/ui aliases — map ke Minorum tokens */
   --background: var(--color-background);
@@ -165,6 +174,7 @@
   --color-text-secondary: var(--color-text-secondary);
   --color-text-muted: var(--color-text-muted);
   --color-text-on-accent: var(--color-text-on-accent);
+  --color-text-on-user: var(--color-text-on-user);
   --color-accent-primary: var(--color-accent-primary);
   --color-user-bubble: var(--color-user-bubble);
   --color-assistant-bubble: var(--color-assistant-bubble);
@@ -193,6 +203,7 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
 
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -236,6 +247,7 @@
 body {
   margin: 0;
   min-height: 100%;
+  height: var(--app-height, 100dvh);
   font-family: var(--font-sans);
   font-size: var(--text-body-large-size);
   font-weight: var(--text-body-large-weight);
@@ -243,9 +255,47 @@ body {
   color: var(--color-text-primary);
   background-color: var(--color-background);
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: manipulation;
 }
 
 .dark {
+  --color-background: #000000;
+  --color-surface: #1a2226;
+  --color-surface-raised: #111b21;
+
+  --color-assistant-bubble: #242626;
+  --color-user-bubble: #144d37;
+  --color-composer: var(--color-assistant-bubble);
+  --color-border: #1a2226;
+  --color-border-subtle: #141a1d;
+
+  --color-text-primary: #e9edef;
+  --color-text-secondary: #8696a0;
+  --color-text-muted: #8696a0;
+  --color-text-on-accent: #ffffff;
+  --color-text-on-user: #ffffff;
+
+  --color-accent-primary: #00a884;
+  --color-focus-ring: #53bdeb;
+
+  --color-success: #00a884;
+  --color-warning: #f5a623;
+  --color-error: #ff4d4f;
+
+  --color-disabled-bg: #141a1d;
+  --color-disabled-text: #8696a0;
+
+  --color-splash: rgba(255, 255, 255, 0.06);
+  --color-highlight: rgba(255, 255, 255, 0.06);
+  --color-focus-overlay: rgba(0, 168, 132, 0.12);
+  --color-pressed-overlay: rgba(255, 255, 255, 0.1);
+  --color-hover-overlay: rgba(255, 255, 255, 0.05);
+
+  --shadow-floating: 0 2px 12px rgba(0, 0, 0, 0.6);
+  --shadow-modal: 0 4px 24px rgba(0, 0, 0, 0.7);
+
   --background: var(--color-background);
   --foreground: var(--color-text-primary);
   --card: var(--color-surface);
@@ -343,11 +393,15 @@ body {
   width: 6px;
   height: 6px;
   border-radius: 9999px;
-  background-color: #ffffff;
+  background-color: #000000;
   animation-name: typing-wave;
   animation-duration: 1.4s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
+}
+
+.dark .typing-indicator-dot {
+  background-color: #ffffff;
 }
 
 .typing-indicator-dot:nth-child(1) {
@@ -360,6 +414,168 @@ body {
 
 .typing-indicator-dot:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+/* Assistant markdown — readable spacing in dark + light */
+.chat-markdown {
+  line-height: var(--chat-markdown-line-height);
+  color: var(--color-text-primary);
+}
+
+.chat-markdown > :first-child {
+  margin-top: 0;
+}
+
+.chat-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.chat-markdown p {
+  margin: 0 0 var(--chat-markdown-block-gap);
+}
+
+.chat-markdown h1,
+.chat-markdown h2,
+.chat-markdown h3,
+.chat-markdown h4 {
+  margin: 1.15em 0 0.45em;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.chat-markdown h1 {
+  font-size: 1.25em;
+}
+
+.chat-markdown h2 {
+  font-size: 1.15em;
+}
+
+.chat-markdown h3,
+.chat-markdown h4 {
+  font-size: 1.05em;
+}
+
+.chat-markdown h1:first-child,
+.chat-markdown h2:first-child,
+.chat-markdown h3:first-child,
+.chat-markdown h4:first-child {
+  margin-top: 0;
+}
+
+.chat-markdown ul,
+.chat-markdown ol {
+  margin: 0 0 var(--chat-markdown-block-gap);
+  padding-left: 1.35rem;
+}
+
+.chat-markdown ul {
+  list-style: disc;
+}
+
+.chat-markdown ol {
+  list-style: decimal;
+}
+
+.chat-markdown li {
+  margin: 0.35em 0;
+  padding-left: 0.15rem;
+}
+
+.chat-markdown li > ul,
+.chat-markdown li > ol {
+  margin: 0.35em 0 0.15em;
+}
+
+.chat-markdown blockquote {
+  margin: 0 0 var(--chat-markdown-block-gap);
+  border-left: 3px solid var(--color-border);
+  padding: 0.15rem 0 0.15rem 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.chat-markdown hr {
+  margin: 1.1rem 0;
+  border: 0;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.chat-markdown-table-wrap {
+  margin: 0 0 var(--chat-markdown-block-gap);
+  overflow-x: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.chat-markdown table {
+  width: 100%;
+  min-width: 16rem;
+  border-collapse: collapse;
+  font-size: var(--text-body-medium-size);
+  line-height: 1.5;
+}
+
+.chat-markdown th,
+.chat-markdown td {
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.chat-markdown th {
+  background: var(--color-surface-raised);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.chat-markdown tr:last-child td {
+  border-bottom: 0;
+}
+
+.chat-markdown-inline-code {
+  border-radius: var(--radius-sm);
+  background: #0d0d0d;
+  padding: 0.12em 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  color: #ffffff;
+}
+
+.chat-markdown .verminal-code {
+  margin: 0.35rem 0 var(--chat-markdown-block-gap);
+}
+
+@media (max-width: 767px) {
+  .chat-markdown {
+    font-size: 15px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .chat-markdown h1 {
+    font-size: 1.2em;
+  }
+
+  .chat-markdown h2 {
+    font-size: 1.12em;
+  }
+
+  .chat-markdown th,
+  .chat-markdown td {
+    padding: 0.5rem 0.6rem;
+    font-size: 13px;
+  }
+
+  .chat-markdown-table-wrap {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .verminal-code pre {
+    font-size: 13px;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @layer utilities {
@@ -450,7 +666,8 @@ body {
   }
 
   .inset-screen {
-    padding-inline: var(--content-inset);
+    padding-left: max(var(--content-inset), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--content-inset), env(safe-area-inset-right, 0px));
     padding-top: var(--chat-composer-top-inset);
     padding-bottom: calc(
       var(--chat-composer-bottom-inset) + env(safe-area-inset-bottom, 0px)
@@ -573,7 +790,7 @@ body {
   }
 
   .icon-btn:hover {
-    background-color: rgb(255 255 255 / 0.05);
+    background-color: var(--color-hover-overlay);
     color: var(--color-text-primary);
   }
 
@@ -591,6 +808,6 @@ body {
   }
 
   .chip-btn:hover {
-    background-color: rgb(255 255 255 / 0.05);
+    background-color: var(--color-hover-overlay);
   }
 }

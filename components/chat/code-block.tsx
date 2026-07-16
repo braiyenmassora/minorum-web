@@ -19,15 +19,19 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   );
 
   return (
-    <div className="verminal-code relative mb-1.5">
+    <div className="verminal-code relative">
       <CopyIconButton
         text={code}
         label="Salin kode"
         className="absolute top-1 right-1 z-10"
       />
-      <pre className="overflow-x-auto rounded-token border border-white/10 p-2.5 pr-9">
+      <pre className="overflow-x-auto rounded-token border border-white/10 p-2.5 pr-9 text-white">
         <code
-          className={language ? `hljs language-${language}` : "hljs"}
+          className={
+            language
+              ? `hljs language-${language} text-white`
+              : "hljs text-white"
+          }
           dangerouslySetInnerHTML={{ __html: highlighted }}
         />
       </pre>

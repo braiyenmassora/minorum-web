@@ -28,7 +28,7 @@ export function ChatMessageActions({
   const isPlaying = activeMessageId === messageId;
 
   return (
-    <div className="mt-2 flex items-center gap-1.5">
+    <div className="mt-3 flex items-center gap-1.5">
       <CopyIconButton text={text} label="Copy message" />
       <button
         type="button"

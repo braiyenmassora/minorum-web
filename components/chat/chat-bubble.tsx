@@ -35,7 +35,7 @@ function UserBubbleText({ text }: { text: string }) {
       : text;
 
   return (
-    <div className="w-fit max-w-full min-w-0 rounded-token bg-user-bubble px-3 py-2 text-token-body leading-[1.5] text-white">
+    <div className="w-fit max-w-full min-w-0 rounded-token bg-user-bubble px-3.5 py-2.5 text-token-body leading-[1.55] text-white">
       <p className="break-words whitespace-pre-wrap">{shown}</p>
       {truncatable ? (
         <button
@@ -128,7 +128,7 @@ export function ChatBubble({
   return (
     <div
       className={cn(
-        "flex w-full min-w-0 flex-col gap-2",
+        "flex w-full min-w-0 flex-col gap-2.5",
         isUser ? "items-end" : "items-start",
       )}
     >
@@ -147,7 +147,7 @@ export function ChatBubble({
             ) : null}
           </div>
         ) : (
-          <div className="w-full min-w-0 text-token-body leading-[1.5] text-text-primary">
+          <div className="w-full min-w-0 text-token-body leading-[var(--chat-markdown-line-height)] text-text-primary">
             <ChatMarkdown content={text} />
             <ChatMessageActions
               messageId={message.id}

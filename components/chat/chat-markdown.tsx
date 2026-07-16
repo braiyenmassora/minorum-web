@@ -43,7 +43,7 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
   const markdown = normalizeAssistantMarkdown(content);
 
   return (
-    <div className="break-words">
+    <div className="chat-markdown break-words">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -57,14 +57,26 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
               {children}
             </a>
           ),
-          p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
-          ul: ({ children }) => (
-            <ul className="mb-1 list-disc space-y-0.5 pl-4">{children}</ul>
-          ),
-          ol: ({ children }) => (
-            <ol className="mb-1 list-decimal space-y-0.5 pl-4">{children}</ol>
-          ),
+          h1: ({ children }) => <h1>{children}</h1>,
+          h2: ({ children }) => <h2>{children}</h2>,
+          h3: ({ children }) => <h3>{children}</h3>,
+          h4: ({ children }) => <h4>{children}</h4>,
+          p: ({ children }) => <p>{children}</p>,
+          ul: ({ children }) => <ul>{children}</ul>,
+          ol: ({ children }) => <ol>{children}</ol>,
           li: ({ children }) => <li>{children}</li>,
+          blockquote: ({ children }) => <blockquote>{children}</blockquote>,
+          hr: () => <hr />,
+          table: ({ children }) => (
+            <div className="chat-markdown-table-wrap">
+              <table>{children}</table>
+            </div>
+          ),
+          thead: ({ children }) => <thead>{children}</thead>,
+          tbody: ({ children }) => <tbody>{children}</tbody>,
+          tr: ({ children }) => <tr>{children}</tr>,
+          th: ({ children }) => <th>{children}</th>,
+          td: ({ children }) => <td>{children}</td>,
           code: ({ className, children }) => {
             const isBlock = Boolean(className);
             if (isBlock) {
@@ -72,9 +84,7 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
             }
 
             return (
-              <code className="rounded-token-sm bg-black/65 px-1 py-0.5 font-mono text-[0.9em] text-white">
-                {children}
-              </code>
+              <code className="chat-markdown-inline-code">{children}</code>
             );
           },
           pre: ({ children }) => <MarkdownPre>{children}</MarkdownPre>,

@@ -1,0 +1,55 @@
+---
+description: Format jawaban agen AI — heading, bullet, bold, ringkas, rapi
+alwaysApply: true
+---
+
+# Format jawaban agen
+
+Setiap jawaban ke user wajib mengikuti format ini. Berlaku untuk chat, penjelasan kode, debugging, dan ringkasan kerja.
+
+## Struktur
+
+- Bagi topik dengan heading `##` atau `###` — jangan dinding teks panjang tanpa sub-bab.
+- Jika jawaban panjang: mulai dengan **intisari / kesimpulan** singkat di atas.
+
+## Keterbacaan
+
+- Pakai **bullet points** untuk daftar poin.
+- Paragraf maksimal **3–4 kalimat**.
+- Sisakan white space antar bagian agar nyaman di HP dan desktop.
+
+## Penekanan
+
+- Bold (**...**) hanya pada **kata kunci**, istilah teknis, atau bagian paling penting.
+- Jangan bold seluruh kalimat.
+
+## Kode
+
+- Blok kode: sertakan **komentar singkat** di dalam kode bila membantu.
+- Di luar blok: jelaskan logika secara rapi (apa yang dilakukan + kenapa).
+- Kutip kode repo dengan format citation yang diminta sistem Cursor.
+
+## Tabel
+
+- Pakai **tabel** bila ada perbandingan (opsi A vs B, sebelum vs sesudah, status, dll.).
+
+## Contoh kerangka
+
+```markdown
+## Intisari
+Satu–dua kalimat verdict.
+
+## Penyebab
+- poin
+- poin
+
+## Perbaikan
+Penjelasan singkat.
+
+\`\`\`ts
+// komentar singkat
+doThing();
+\`\`\`
+
+Logika: ...
+```

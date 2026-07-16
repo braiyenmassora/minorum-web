@@ -8,7 +8,13 @@ import {
   Menu,
   Plus,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { ChatBubble } from "@/components/chat/chat-bubble";
 import { ChatHistorySidebar } from "@/components/chat/chat-history-sidebar";
@@ -21,6 +27,7 @@ import { ModelPickerPanel } from "@/components/chat/model-picker-panel";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { AppLogo } from "@/components/ui/app-logo";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
 import type { AppConfig } from "@/lib/core/config/app-config";
 import {
   comboIdsFromEntries,
@@ -255,6 +262,16 @@ export function ChatScreen({
       container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
     });
   }, [messages, streaming]);
+
+  // Opening the model list grows the composer and shrinks the message pane —
+  // keep the viewport pinned to the bottom so history doesn't jump upward.
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    if (!container || messagesRef.current.length === 0) {
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
+  }, [modelPickerOpen]);
 
   const canSend =
     Boolean(config.modelName.trim()) &&
@@ -666,7 +683,7 @@ export function ChatScreen({
         <SheetContent
           side="left"
           showCloseButton={false}
-          className="w-[min(280px,85vw)] gap-0 border-0 p-0 sm:max-w-[280px]"
+          className="w-[min(280px,85vw)] gap-0 border-0 p-0 pt-[env(safe-area-inset-top,0px)] sm:max-w-[280px]"
         >
           <SheetTitle className="sr-only">
             {copy.chat_history_sidebar.title}
@@ -679,10 +696,10 @@ export function ChatScreen({
       </Sheet>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex shrink-0 items-center gap-2 border-b border-border-subtle px-[var(--content-inset)] pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-2 md:hidden">
+        <header className="flex shrink-0 items-center gap-1.5 border-b border-border-subtle pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-2 pl-[max(var(--content-inset),env(safe-area-inset-left,0px))] pr-[max(var(--content-inset),env(safe-area-inset-right,0px))] md:hidden">
           <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary active:bg-surface-raised"
             onClick={() => setHistoryOpen(true)}
             aria-label={copy.chat_history_sidebar.title}
           >
@@ -690,23 +707,24 @@ export function ChatScreen({
           </button>
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <AppLogo size={28} className="shrink-0 rounded-full" />
-            <span className="truncate text-token-body font-medium text-text-primary">
+            <span className="font-display truncate text-token-body font-extrabold tracking-tight text-text-primary">
               Minorum
             </span>
           </div>
           <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary active:bg-surface-raised"
             onClick={handleNewChat}
             aria-label={copy.chat_history_sidebar.new_chat}
           >
             <Plus className="size-5" />
           </button>
+          <ThemeToggleButton className="size-11 shrink-0" />
         </header>
 
         <div
           ref={scrollRef}
-          className="chat-scroll scroll-pb-composer-top scroll-pt-composer-top min-h-0 flex-1 overflow-y-auto px-[var(--content-inset)]"
+          className="chat-scroll scroll-pb-composer-top scroll-pt-composer-top min-h-0 flex-1 overflow-y-auto overscroll-contain pl-[max(var(--content-inset),env(safe-area-inset-left,0px))] pr-[max(var(--content-inset),env(safe-area-inset-right,0px))]"
         >
           <div
             className={cn(
@@ -754,7 +772,19 @@ export function ChatScreen({
         </div>
 
         <div className="inset-screen shrink-0">
-          <div className="mx-auto w-full max-w-[var(--chat-max-width)]">
+          <div
+            ref={modelPickerRef}
+            className="relative mx-auto w-full max-w-[var(--chat-max-width)]"
+          >
+            {modelPickerOpen ? (
+              <div className="absolute inset-x-0 bottom-full z-30 mb-2 max-h-[min(50dvh,22rem)] overflow-hidden rounded-token border border-border-subtle bg-assistant-bubble shadow-floating">
+                <ModelPickerPanel
+                  config={config}
+                  onSelect={handleModelSelect}
+                />
+              </div>
+            ) : null}
+
             <div className="overflow-hidden rounded-token border border-border-subtle bg-assistant-bubble shadow-floating">
               {errorMessage ? (
                 <div className="border-b border-border-subtle px-composer py-composer text-token-label text-error">
@@ -762,68 +792,59 @@ export function ChatScreen({
                 </div>
               ) : null}
 
-              <div ref={modelPickerRef}>
-                <div className="flex items-center justify-between gap-2 px-composer py-composer">
+              <div className="flex items-center justify-between gap-2 px-composer py-composer">
+                <button
+                  type="button"
+                  className="inline-flex min-w-0 flex-1 items-center gap-1 text-left text-token-body font-bold text-text-primary transition-opacity hover:opacity-80 disabled:pointer-events-none"
+                  onClick={openModelPicker}
+                  disabled={streaming}
+                  title={config.modelName}
+                  aria-expanded={modelPickerOpen}
+                >
+                  <span className="truncate">
+                    {getModelDisplayName(config.modelName)}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "size-3 shrink-0 transition-transform",
+                      modelPickerOpen && "rotate-180",
+                    )}
+                  />
+                </button>
+                <div className="flex shrink-0 items-center justify-end gap-0.5">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                  />
+                  <input
+                    ref={documentInputRef}
+                    type="file"
+                    accept={DOCUMENT_FILE_ACCEPT}
+                    className="hidden"
+                    onChange={(event) => void handleDocumentSelect(event)}
+                  />
                   <button
                     type="button"
-                    className="inline-flex min-w-0 flex-1 items-center gap-1 text-left text-token-body font-bold text-white transition-opacity hover:opacity-80 disabled:pointer-events-none"
-                    onClick={openModelPicker}
-                    disabled={streaming}
-                    title={config.modelName}
-                    aria-expanded={modelPickerOpen}
+                    className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
+                    disabled={streaming || attachingImage}
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label={copy.chat_screen_input_header.attach_image}
                   >
-                    <span className="truncate">
-                      {getModelDisplayName(config.modelName)}
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        "size-3 shrink-0 transition-transform",
-                        modelPickerOpen && "rotate-180",
-                      )}
-                    />
+                    <ImageIcon className="size-[var(--icon-size)]" />
                   </button>
-                  <div className="flex shrink-0 items-center justify-end gap-0.5">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageSelect}
-                    />
-                    <input
-                      ref={documentInputRef}
-                      type="file"
-                      accept={DOCUMENT_FILE_ACCEPT}
-                      className="hidden"
-                      onChange={(event) => void handleDocumentSelect(event)}
-                    />
-                    <button
-                      type="button"
-                      className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
-                      disabled={streaming || attachingImage}
-                      onClick={() => fileInputRef.current?.click()}
-                      aria-label={copy.chat_screen_input_header.attach_image}
-                    >
-                      <ImageIcon className="size-[var(--icon-size)]" />
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
-                      disabled={streaming || attachingDocument}
-                      onClick={() => documentInputRef.current?.click()}
-                      aria-label={copy.chat_screen_input_header.attach_document}
-                    >
-                      <FileText className="size-[var(--icon-size)]" />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
+                    disabled={streaming || attachingDocument}
+                    onClick={() => documentInputRef.current?.click()}
+                    aria-label={copy.chat_screen_input_header.attach_document}
+                  >
+                    <FileText className="size-[var(--icon-size)]" />
+                  </button>
                 </div>
-
-                {modelPickerOpen ? (
-                  <ModelPickerPanel
-                    config={config}
-                    onSelect={handleModelSelect}
-                  />
-                ) : null}
               </div>
 
               {pendingImage ? (
@@ -843,8 +864,7 @@ export function ChatScreen({
               <div
                 className={cn(
                   "flex items-end gap-3 px-composer py-composer",
-                  !modelPickerOpen &&
-                    !pendingImage &&
+                  !pendingImage &&
                     !pendingDocument &&
                     "border-t border-border-subtle",
                 )}

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fira_Code, Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
+import { MobileViewportSync } from "@/components/mobile-viewport-sync";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,6 +17,14 @@ const geistMono = Geist_Mono({
 const firaCode = Fira_Code({
   variable: "--font-fira-code",
   subsets: ["latin"],
+});
+
+/** Brand wordmark "Minorum" — body UI stays Geist. */
+const funnelDisplay = localFont({
+  src: "../public/fonts/FunnelDisplay-ExtraBold.woff2",
+  variable: "--font-funnel-display",
+  weight: "800",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -34,8 +44,14 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#000000",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f0f2f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+  // Android Chrome: shrink layout when keyboard opens
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
@@ -46,12 +62,21 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} ${firaCode.variable} dark h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${firaCode.variable} ${funnelDisplay.variable} dark h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("minorum_theme");if(t==="light"){document.documentElement.classList.remove("dark");document.documentElement.style.colorScheme="light";}else{document.documentElement.classList.add("dark");document.documentElement.style.colorScheme="dark";}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body
-        className="flex h-dvh flex-col overflow-hidden bg-background text-foreground"
+        className="flex h-[var(--app-height,100dvh)] flex-col overflow-hidden bg-background text-foreground"
         suppressHydrationWarning
       >
+        <MobileViewportSync />
         {children}
       </body>
     </html>
