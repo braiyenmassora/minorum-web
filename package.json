@@ -15,8 +15,7 @@
     "check:app-copy": "npx tsx lib/core/copy/app-copy.check.ts",
     "check:image": "npx tsx lib/services/image-attachment-service.check.ts",
     "check:document": "npx tsx lib/services/document-attachment-service.check.ts",
-    "check:speech": "npx tsx lib/utils/message-speech.check.ts",
-    "check:router-tools": "npx tsx lib/services/router-tools-service.check.ts"
+    "check:speech": "npx tsx lib/utils/message-speech.check.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

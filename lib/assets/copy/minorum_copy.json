@@ -32,10 +32,8 @@
     "new_chat": "New chat",
     "attach_image": "Attach image",
     "attach_document": "Attach file",
-    "web_mode": "Web search / fetch",
     "open_history": "Chats",
-    "placeholder": "Type a message…",
-    "placeholder_web": "Search the web / paste a URL…"
+    "placeholder": "Type a message…"
   },
   "chat_history_sidebar": {
     "title": "Minorum",

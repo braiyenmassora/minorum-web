@@ -4,7 +4,6 @@ import {
   ArrowUp,
   ChevronDown,
   FileText,
-  Globe,
   ImageIcon,
   Menu,
   Plus,
@@ -51,10 +50,6 @@ import {
 } from "@/lib/services/document-attachment-service";
 import { fetchModelEntries, streamChat } from "@/lib/services/chat-service";
 import { updateConfigModel } from "@/lib/services/config-storage-service";
-import {
-  buildWebContext,
-  looksLikeUrlOnly,
-} from "@/lib/services/router-tools-service";
 import {
   probeSystemStatus,
   STATUS_POLL_MS,
@@ -111,7 +106,6 @@ export function ChatScreen({
   );
   const [systemStatus, setSystemStatus] = useState<SystemStatus>("checking");
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [webMode, setWebMode] = useState(false);
   const serverClockOffsetMsRef = useRef(0);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -489,67 +483,15 @@ export function ChatScreen({
       setPendingImage(null);
       setPendingDocument(null);
 
-      const wantsWeb = Boolean(text) && (webMode || looksLikeUrlOnly(text));
-      if (!wantsWeb) {
-        await streamFromHistory(history);
-        return;
-      }
-
-      const epoch = sessionEpochRef.current;
-      const sessionId = activeSessionId ?? createId();
-      if (!activeSessionId) {
-        setActiveSessionId(sessionId);
-      }
-
-      setMessages(history);
-      messagesRef.current = history;
-      setStreaming(true);
-      setErrorMessage(null);
-
-      const abortController = new AbortController();
-      abortRef.current = abortController;
-
-      try {
-        const context = await buildWebContext(
-          config,
-          text,
-          abortController.signal,
-        );
-        if (sessionEpochRef.current !== epoch) {
-          return;
-        }
-
-        const apiHistory: Message[] = [
-          ...history.slice(0, -1),
-          {
-            ...userMessage,
-            content: `${text}\n\n---\nWeb context (use this to answer; cite sources when relevant):\n${context}`,
-          },
-        ];
-
-        abortRef.current = null;
-        await streamFromHistory(history, apiHistory);
-      } catch (error) {
-        if (sessionEpochRef.current !== epoch) {
-          return;
-        }
-        const apiError = toChatApiError(error);
-        if (apiError.kind !== "cancelled") {
-          setErrorMessage(messageForApiError(apiError.kind));
-        }
-        setStreaming(false);
-        abortRef.current = null;
-      }
+      await streamFromHistory(history);
     },
     [
       input,
       pendingDocument,
       pendingImage,
       streaming,
-      webMode,
       streamFromHistory,
       config,
-      activeSessionId,
     ],
   );
 
@@ -873,22 +815,6 @@ export function ChatScreen({
                     >
                       <FileText className="size-[var(--icon-size)]" />
                     </button>
-                    <button
-                      type="button"
-                      className={cn(
-                        "inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm transition-colors disabled:opacity-40",
-                        webMode
-                          ? "bg-surface-raised text-text-primary"
-                          : "text-text-muted hover:bg-surface-raised hover:text-text-primary",
-                      )}
-                      disabled={streaming}
-                      onClick={() => setWebMode((on) => !on)}
-                      aria-label={copy.chat_screen_input_header.web_mode}
-                      aria-pressed={webMode}
-                      title={copy.chat_screen_input_header.web_mode}
-                    >
-                      <Globe className="size-[var(--icon-size)]" />
-                    </button>
                   </div>
                 </div>
 
@@ -930,11 +856,7 @@ export function ChatScreen({
                   onKeyDown={handleComposerKeyDown}
                   rows={1}
                   enterKeyHint="enter"
-                  placeholder={
-                    webMode
-                      ? copy.chat_screen_input_header.placeholder_web
-                      : copy.chat_screen_input_header.placeholder
-                  }
+                  placeholder={copy.chat_screen_input_header.placeholder}
                   disabled={streaming}
                   className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none bg-transparent px-0 py-[7px] text-base leading-[1.5] outline-none placeholder:text-text-muted disabled:opacity-50 md:text-token-body"
                 />
