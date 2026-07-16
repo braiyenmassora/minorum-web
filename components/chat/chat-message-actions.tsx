@@ -29,11 +29,13 @@ export function ChatMessageActions({
 
   return (
     <div className="mt-2 flex items-center gap-1.5">
-      <CopyIconButton text={text} label="Salin pesan" />
+      <CopyIconButton text={text} label="Copy message" />
       <button
         type="button"
-        onClick={() => toggleMessageSpeech(messageId, text)}
-        aria-label={isPlaying ? "Berhenti baca pesan" : "Baca pesan"}
+        onClick={() => {
+          void toggleMessageSpeech(messageId, text);
+        }}
+        aria-label={isPlaying ? "Stop reading message" : "Read message aloud"}
         aria-pressed={isPlaying}
         className={cn(
           "inline-flex size-7 items-center justify-center rounded-token-sm transition-colors",

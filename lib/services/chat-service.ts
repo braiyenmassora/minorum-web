@@ -3,6 +3,7 @@ import {
   buildModelsUrl,
   type AppConfig,
 } from "@/lib/core/config/app-config";
+import type { ModelEntry } from "@/lib/core/config/model-label";
 import { systemPrompt } from "@/lib/core/persona/minorum-persona";
 import type { ApiMessage, Message } from "@/lib/models/message";
 import { toApiMessageContent } from "@/lib/models/message-content";
@@ -102,10 +103,10 @@ export async function testConnection(
   await fetchModels(config, signal);
 }
 
-export async function fetchModels(
+export async function fetchModelEntries(
   config: AppConfig,
   signal?: AbortSignal,
-): Promise<string[]> {
+): Promise<ModelEntry[]> {
   const { url, headers } = resolveRequestTarget(config, "models");
   const response = await fetchWithTimeout(url, {
     method: "GET",
@@ -113,21 +114,34 @@ export async function fetchModels(
     signal,
   });
 
-  const data = await parseJsonResponse<{ data?: Array<{ id?: string }> }>(
-    response,
-  );
+  const data = await parseJsonResponse<{
+    data?: Array<{ id?: string; owned_by?: string }>;
+  }>(response);
 
   if (!Array.isArray(data.data)) {
     throw new ChatApiError("unknown");
   }
 
-  return [
-    ...new Set(
-      data.data
-        .map((model) => model.id)
-        .filter((id): id is string => typeof id === "string" && id.length > 0),
-    ),
-  ];
+  const seen = new Set<string>();
+  const entries: ModelEntry[] = [];
+  for (const model of data.data) {
+    if (typeof model.id !== "string" || !model.id || seen.has(model.id)) {
+      continue;
+    }
+    seen.add(model.id);
+    entries.push({
+      id: model.id,
+      ownedBy: typeof model.owned_by === "string" ? model.owned_by : undefined,
+    });
+  }
+  return entries;
+}
+
+export async function fetchModels(
+  config: AppConfig,
+  signal?: AbortSignal,
+): Promise<string[]> {
+  return (await fetchModelEntries(config, signal)).map((entry) => entry.id);
 }
 
 function requireModelName(config: AppConfig): string {

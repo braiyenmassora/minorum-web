@@ -1,5 +1,7 @@
 import {
   getModelDisplayName,
+  getProviderCategory,
+  groupModelsForPicker,
   pickDefaultModel,
   resolveModelSelection,
   sortModelsForDisplay,
@@ -11,39 +13,60 @@ function assert(condition: boolean, message: string): void {
   }
 }
 
-assert(getModelDisplayName("auto/best-chat") === "best-chat", "display name");
+assert(getModelDisplayName("openai/gpt-4o") === "gpt-4o", "provider model");
+assert(getModelDisplayName("DealWithSign") === "DealWithSign", "combo id");
+
 assert(
-  pickDefaultModel(["auto/best-coding", "auto/best-chat"]) === "auto/best-chat",
-  "prefer best-chat",
+  pickDefaultModel(["openai/gpt-4o", "DealWithSign", "nvidia/x"], undefined, [
+    "DealWithSign",
+  ]) === "DealWithSign",
+  "default to DealWithSign combo",
 );
 assert(
-  pickDefaultModel(
-    ["auto/best-coding", "auto/pro-coding"],
-    "auto/pro-coding",
-  ) === "auto/pro-coding",
+  pickDefaultModel(["a/b"], "a/b") === "a/b",
   "honor preferred when listed",
 );
 assert(
-  pickDefaultModel(["auto/best-coding", "foo/bar"]) === "foo/bar",
-  "skip heavy coding default",
-);
-assert(pickDefaultModel(["only-one"]) === "only-one", "fallback first");
-assert(pickDefaultModel([]) === undefined, "empty list");
-
-assert(
-  resolveModelSelection("stale/id", ["auto/best-chat"]) === "auto/best-chat",
-  "replace stale",
-);
-assert(
-  resolveModelSelection("auto/best-chat", ["auto/best-chat", "other"]) ===
-    "auto/best-chat",
-  "keep valid",
+  pickDefaultModel(["openai/gpt-4o", "DealWithSign"], "DealWithSign", [
+    "DealWithSign",
+  ]) === "DealWithSign",
+  "honor preferred combo",
 );
 
 assert(
-  sortModelsForDisplay(["z", "auto/best-chat", "a"]).join(",") ===
-    "auto/best-chat,z,a",
-  "hoist preferred",
+  resolveModelSelection(
+    "stale/id",
+    ["DealWithSign", "openai/gpt-4o"],
+    "DealWithSign",
+    ["DealWithSign"],
+  ) === "DealWithSign",
+  "stale → DealWithSign",
 );
+
+assert(
+  sortModelsForDisplay(
+    ["openai/gpt-4o", "DealWithSign", "z/model"],
+    ["DealWithSign"],
+  ).join(",") === "DealWithSign,openai/gpt-4o,z/model",
+  "combos first",
+);
+
+assert(
+  getProviderCategory({ id: "DealWithSign", ownedBy: "combo" }) === "Combo",
+  "combo category",
+);
+assert(
+  getProviderCategory({ id: "nvidia/foo", ownedBy: "nvidia" }) === "Nvidia",
+  "nvidia category",
+);
+
+const grouped = groupModelsForPicker([
+  { id: "DealWithSign", ownedBy: "combo" },
+  { id: "nvidia/a", ownedBy: "nvidia" },
+  { id: "gemini/b", ownedBy: "gemini" },
+]);
+assert(grouped[0]?.category === "Combo", "combo group first");
+assert(grouped[0]?.models[0]?.id === "DealWithSign", "combo listed");
+assert(grouped.length === 3, "three groups");
 
 console.log("model-label checks passed");

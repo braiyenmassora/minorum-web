@@ -1,4 +1,5 @@
 import {
+  buildAudioSpeechUrl,
   buildChatCompletionsUrl,
   buildModelsUrl,
   normalizeApiBaseUrl,
@@ -35,6 +36,11 @@ assert(
   buildChatCompletionsUrl("https://api.example.com") ===
     "https://api.example.com/v1/chat/completions",
   "chat url",
+);
+assert(
+  buildAudioSpeechUrl("https://api.example.com") ===
+    "https://api.example.com/v1/audio/speech",
+  "speech url",
 );
 
 let threw = false;

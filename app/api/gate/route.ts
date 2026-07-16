@@ -1,10 +1,14 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { pickDefaultModel } from "@/lib/core/config/model-label";
 
 const GATE_COOKIE = "minorum_gate";
 const GATE_COOKIE_VALUE = "1";
 const GATE_PASSWORD = process.env.GATE_PASSWORD?.trim() || "REDACTED";
+
+function hasGateCookie(request: NextRequest): boolean {
+  return request.cookies.get(GATE_COOKIE)?.value === GATE_COOKIE_VALUE;
+}
 
 function normalizeApiBaseUrl(raw: string): string {
   const trimmed = raw.trim().replace(/\/+$/, "");
@@ -40,7 +44,7 @@ async function testApiConnection(
   apiBaseUrl: string,
   apiKey: string,
 ): Promise<
-  | { ok: true; models: string[] }
+  | { ok: true; models: string[]; comboIds: string[] }
   | { ok: false; status: number; message: string }
 > {
   let upstream: Response;
@@ -81,15 +85,54 @@ async function testApiConnection(
     return { ok: false, status: 502, message: "API key/URL salah" };
   }
 
-  const models = [
-    ...new Set(
-      ((body as { data: Array<{ id?: string }> }).data ?? [])
-        .map((model) => model.id)
-        .filter((id): id is string => typeof id === "string" && id.length > 0),
-    ),
-  ];
+  const rows = (body as { data: Array<{ id?: string; owned_by?: string }> })
+    .data;
+  const models: string[] = [];
+  const comboIds: string[] = [];
+  const seen = new Set<string>();
 
-  return { ok: true, models };
+  for (const model of rows) {
+    if (typeof model.id !== "string" || !model.id || seen.has(model.id)) {
+      continue;
+    }
+    seen.add(model.id);
+    models.push(model.id);
+    if (
+      model.owned_by === "combo" ||
+      model.id === "auto" ||
+      model.id.startsWith("auto/")
+    ) {
+      comboIds.push(model.id);
+    }
+  }
+
+  return { ok: true, models, comboIds };
+}
+
+/** Sync API URL/key from current .env into an already-logged-in client. */
+export async function GET(request: NextRequest) {
+  // api/gate is outside middleware; require cookie in production so the key isn't public.
+  const allowUnauthed = process.env.NODE_ENV !== "production";
+  if (!allowUnauthed && !hasGateCookie(request)) {
+    return NextResponse.json({ ok: false }, { status: 401 });
+  }
+
+  const defaults = readApiDefaults();
+  if (!defaults) {
+    return NextResponse.json(
+      { ok: false, message: "Server API config missing" },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    config: {
+      apiBaseUrl: defaults.apiBaseUrl,
+      apiKey: defaults.apiKey,
+      preferredModel: defaults.preferredModel,
+    },
+  });
 }
 
 export async function POST(request: Request) {
@@ -126,7 +169,8 @@ export async function POST(request: Request) {
   }
 
   const modelName =
-    pickDefaultModel(probe.models, defaults.preferredModel) ?? "";
+    pickDefaultModel(probe.models, defaults.preferredModel, probe.comboIds) ??
+    "";
 
   const response = NextResponse.json({
     ok: true,

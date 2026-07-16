@@ -24,7 +24,7 @@
     "cancel": "Batal"
   },
   "chat_screen_empty_state": {
-    "title": "Mulai Aja Dulu, Pasti Ada Jalan",
+    "title": "Just Start, We'll Figure It Out",
     "subtitle": "Jakarta, Indonesia · pukul 08.00 AM"
   },
   "chat_screen_input_header": {
@@ -32,7 +32,10 @@
     "new_chat": "New chat",
     "attach_image": "Attach image",
     "attach_document": "Attach file",
-    "open_history": "Chats"
+    "web_mode": "Web search / fetch",
+    "open_history": "Chats",
+    "placeholder": "Type a message…",
+    "placeholder_web": "Search the web / paste a URL…"
   },
   "chat_history_sidebar": {
     "title": "Minorum",

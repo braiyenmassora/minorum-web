@@ -4,6 +4,7 @@ import {
   ArrowUp,
   ChevronDown,
   FileText,
+  Globe,
   ImageIcon,
   Menu,
   Plus,
@@ -22,7 +23,11 @@ import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { AppLogo } from "@/components/ui/app-logo";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import type { AppConfig } from "@/lib/core/config/app-config";
-import { getModelDisplayName } from "@/lib/core/config/model-label";
+import {
+  comboIdsFromEntries,
+  getModelDisplayName,
+  resolveModelSelection,
+} from "@/lib/core/config/model-label";
 import { messageForApiError } from "@/lib/core/copy/api-error-message";
 import { getAppCopy } from "@/lib/core/copy/app-copy";
 import type { ChatSession } from "@/lib/models/chat-session";
@@ -44,9 +49,12 @@ import {
   DOCUMENT_FILE_ACCEPT,
   prepareDocumentAttachment,
 } from "@/lib/services/document-attachment-service";
-import { resolveModelSelection } from "@/lib/core/config/model-label";
-import { fetchModels, streamChat } from "@/lib/services/chat-service";
+import { fetchModelEntries, streamChat } from "@/lib/services/chat-service";
 import { updateConfigModel } from "@/lib/services/config-storage-service";
+import {
+  buildWebContext,
+  looksLikeUrlOnly,
+} from "@/lib/services/router-tools-service";
 import {
   probeSystemStatus,
   STATUS_POLL_MS,
@@ -103,6 +111,7 @@ export function ChatScreen({
   );
   const [systemStatus, setSystemStatus] = useState<SystemStatus>("checking");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [webMode, setWebMode] = useState(false);
   const serverClockOffsetMsRef = useRef(0);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -197,13 +206,21 @@ export function ChatScreen({
 
     void (async () => {
       try {
-        const models = await fetchModels(config);
-        if (cancelled || models.length === 0) {
+        const entries = await fetchModelEntries(config);
+        if (cancelled || entries.length === 0) {
           return;
         }
 
+        const modelIds = entries.map((entry) => entry.id);
+        const comboIds = comboIdsFromEntries(entries);
+
         setConfig((current) => {
-          const resolved = resolveModelSelection(current.modelName, models);
+          const resolved = resolveModelSelection(
+            current.modelName,
+            modelIds,
+            "DealWithSign",
+            comboIds,
+          );
           if (!resolved || resolved === current.modelName) {
             return current;
           }
@@ -333,8 +350,12 @@ export function ChatScreen({
   }, []);
 
   const streamFromHistory = useCallback(
-    async (history: Message[]) => {
-      if (streaming || history.length === 0 || !config.modelName.trim()) {
+    async (history: Message[], apiHistory?: Message[]) => {
+      if (
+        abortRef.current ||
+        history.length === 0 ||
+        !config.modelName.trim()
+      ) {
         return;
       }
 
@@ -345,6 +366,7 @@ export function ChatScreen({
       }
 
       const assistantId = createId();
+      const requestMessages = apiHistory ?? history;
 
       setMessages(history);
       messagesRef.current = history;
@@ -357,7 +379,7 @@ export function ChatScreen({
       try {
         for await (const token of streamChat({
           config,
-          messages: history,
+          messages: requestMessages,
           signal: abortController.signal,
         })) {
           if (sessionEpochRef.current !== epoch) {
@@ -439,7 +461,7 @@ export function ChatScreen({
         }, 0);
       }
     },
-    [activeSessionId, adjustTextareaHeight, config, refreshSessions, streaming],
+    [activeSessionId, adjustTextareaHeight, config, refreshSessions],
   );
 
   const handleSend = useCallback(
@@ -450,7 +472,8 @@ export function ChatScreen({
       if (
         !config.modelName.trim() ||
         (!text && !imageDataUrl && !document) ||
-        streaming
+        streaming ||
+        abortRef.current
       ) {
         return;
       }
@@ -465,15 +488,68 @@ export function ChatScreen({
       setInput("");
       setPendingImage(null);
       setPendingDocument(null);
-      await streamFromHistory(history);
+
+      const wantsWeb = Boolean(text) && (webMode || looksLikeUrlOnly(text));
+      if (!wantsWeb) {
+        await streamFromHistory(history);
+        return;
+      }
+
+      const epoch = sessionEpochRef.current;
+      const sessionId = activeSessionId ?? createId();
+      if (!activeSessionId) {
+        setActiveSessionId(sessionId);
+      }
+
+      setMessages(history);
+      messagesRef.current = history;
+      setStreaming(true);
+      setErrorMessage(null);
+
+      const abortController = new AbortController();
+      abortRef.current = abortController;
+
+      try {
+        const context = await buildWebContext(
+          config,
+          text,
+          abortController.signal,
+        );
+        if (sessionEpochRef.current !== epoch) {
+          return;
+        }
+
+        const apiHistory: Message[] = [
+          ...history.slice(0, -1),
+          {
+            ...userMessage,
+            content: `${text}\n\n---\nWeb context (use this to answer; cite sources when relevant):\n${context}`,
+          },
+        ];
+
+        abortRef.current = null;
+        await streamFromHistory(history, apiHistory);
+      } catch (error) {
+        if (sessionEpochRef.current !== epoch) {
+          return;
+        }
+        const apiError = toChatApiError(error);
+        if (apiError.kind !== "cancelled") {
+          setErrorMessage(messageForApiError(apiError.kind));
+        }
+        setStreaming(false);
+        abortRef.current = null;
+      }
     },
     [
       input,
       pendingDocument,
       pendingImage,
       streaming,
+      webMode,
       streamFromHistory,
-      config.modelName,
+      config,
+      activeSessionId,
     ],
   );
 
@@ -764,7 +840,7 @@ export function ChatScreen({
                       )}
                     />
                   </button>
-                  <div className="flex shrink-0 items-center gap-0.5">
+                  <div className="flex shrink-0 items-center justify-end gap-0.5">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -786,7 +862,7 @@ export function ChatScreen({
                       onClick={() => fileInputRef.current?.click()}
                       aria-label={copy.chat_screen_input_header.attach_image}
                     >
-                      <ImageIcon className="size-6" />
+                      <ImageIcon className="size-[var(--icon-size)]" />
                     </button>
                     <button
                       type="button"
@@ -796,6 +872,22 @@ export function ChatScreen({
                       aria-label={copy.chat_screen_input_header.attach_document}
                     >
                       <FileText className="size-[var(--icon-size)]" />
+                    </button>
+                    <button
+                      type="button"
+                      className={cn(
+                        "inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm transition-colors disabled:opacity-40",
+                        webMode
+                          ? "bg-surface-raised text-text-primary"
+                          : "text-text-muted hover:bg-surface-raised hover:text-text-primary",
+                      )}
+                      disabled={streaming}
+                      onClick={() => setWebMode((on) => !on)}
+                      aria-label={copy.chat_screen_input_header.web_mode}
+                      aria-pressed={webMode}
+                      title={copy.chat_screen_input_header.web_mode}
+                    >
+                      <Globe className="size-[var(--icon-size)]" />
                     </button>
                   </div>
                 </div>
@@ -838,7 +930,11 @@ export function ChatScreen({
                   onKeyDown={handleComposerKeyDown}
                   rows={1}
                   enterKeyHint="enter"
-                  placeholder="Type a message"
+                  placeholder={
+                    webMode
+                      ? copy.chat_screen_input_header.placeholder_web
+                      : copy.chat_screen_input_header.placeholder
+                  }
                   disabled={streaming}
                   className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none bg-transparent px-0 py-[7px] text-base leading-[1.5] outline-none placeholder:text-text-muted disabled:opacity-50 md:text-token-body"
                 />
@@ -852,7 +948,7 @@ export function ChatScreen({
                   )}
                   disabled={!canSend}
                   onClick={() => void handleSend()}
-                  aria-label="Kirim"
+                  aria-label="Send"
                 >
                   <ArrowUp className="size-[var(--icon-size)]" />
                 </button>

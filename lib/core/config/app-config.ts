@@ -27,6 +27,10 @@ export function buildChatCompletionsUrl(baseUrl: string): string {
   return `${normalizeApiBaseUrl(baseUrl)}/chat/completions`;
 }
 
+export function buildAudioSpeechUrl(baseUrl: string): string {
+  return `${normalizeApiBaseUrl(baseUrl)}/audio/speech`;
+}
+
 export function validateAppConfig(input: Partial<AppConfig>): AppConfig {
   const apiBaseUrl = input.apiBaseUrl?.trim() ?? "";
   const apiKey = input.apiKey?.trim() ?? "";
