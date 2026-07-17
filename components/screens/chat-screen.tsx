@@ -15,7 +15,6 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type ClipboardEvent,
 } from "react";
 
 import { ChatBubble } from "@/components/chat/chat-bubble";
@@ -25,7 +24,6 @@ import {
   DocumentPreviewPanel,
   ImagePreviewPanel,
 } from "@/components/chat/image-preview-panel";
-import { PastedTextPreview } from "@/components/chat/pasted-text-preview";
 import { ModelPickerPanel } from "@/components/chat/model-picker-panel";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { AppLogo } from "@/components/ui/app-logo";
@@ -76,7 +74,6 @@ import {
   jakartaGreeting,
   serverAlignedNow,
 } from "@/lib/utils/jakarta-clock";
-import { isLongUserText } from "@/lib/utils/long-user-text";
 
 type ChatScreenProps = {
   config: AppConfig;
@@ -115,9 +112,6 @@ export function ChatScreen({
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const [pendingDocument, setPendingDocument] =
     useState<PendingDocument | null>(null);
-  const [pendingPastedText, setPendingPastedText] = useState<string | null>(
-    null,
-  );
   const [attachingImage, setAttachingImage] = useState(false);
   const [attachingDocument, setAttachingDocument] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -131,7 +125,6 @@ export function ChatScreen({
   const serverClockOffsetMsRef = useRef(0);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const lastMessageRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -258,7 +251,6 @@ export function ChatScreen({
 
   useEffect(() => {
     const container = scrollRef.current;
-    const lastMessageEl = lastMessageRef.current;
     if (!container) {
       return;
     }
@@ -271,18 +263,6 @@ export function ChatScreen({
       : "smooth";
 
     requestAnimationFrame(() => {
-      const lastMessage = messages[messages.length - 1];
-
-      if (streaming && lastMessage?.role === "assistant") {
-        container.scrollTo({ top: container.scrollHeight, behavior });
-        return;
-      }
-
-      if (lastMessageEl) {
-        lastMessageEl.scrollIntoView({ behavior, block: "start" });
-        return;
-      }
-
       container.scrollTo({ top: container.scrollHeight, behavior });
     });
   }, [messages, streaming]);
@@ -297,13 +277,23 @@ export function ChatScreen({
     container.scrollTop = container.scrollHeight;
   }, [modelPickerOpen]);
 
+  const hasComposerPreview = Boolean(pendingImage || pendingDocument);
+
+  // Image/PDF previews grow the composer — keep messages pinned to the bottom.
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    if (!container || messagesRef.current.length === 0) {
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
+  }, [pendingImage, pendingDocument]);
+
   const composerLocked = streaming;
   const attaching = attachingImage || attachingDocument;
 
   const canSend =
     Boolean(config.modelName.trim()) &&
     (input.trim().length > 0 ||
-      Boolean(pendingPastedText?.trim()) ||
       pendingImage !== null ||
       pendingDocument !== null) &&
     !streaming &&
@@ -316,32 +306,7 @@ export function ChatScreen({
       if (composerLocked) {
         return;
       }
-      if (pendingPastedText) {
-        setInput(value);
-        return;
-      }
-      const trimmed = value.trim();
-      if (trimmed && isLongUserText(trimmed)) {
-        setPendingPastedText(trimmed);
-        setInput("");
-        return;
-      }
       setInput(value);
-    },
-    [composerLocked, pendingPastedText],
-  );
-
-  const handleComposerPaste = useCallback(
-    (event: ClipboardEvent<HTMLTextAreaElement>) => {
-      if (composerLocked) {
-        return;
-      }
-      const pasted = event.clipboardData.getData("text");
-      if (!pasted || !isLongUserText(pasted.trim())) {
-        return;
-      }
-      event.preventDefault();
-      setPendingPastedText(pasted.trim());
     },
     [composerLocked],
   );
@@ -429,7 +394,6 @@ export function ChatScreen({
     setInput("");
     setPendingImage(null);
     setPendingDocument(null);
-    setPendingPastedText(null);
     setErrorMessage(null);
     setStreaming(false);
     setModelPickerOpen(false);
@@ -559,9 +523,7 @@ export function ChatScreen({
 
   const handleSend = useCallback(
     async (rawText?: string) => {
-      const pasted = pendingPastedText?.trim() ?? "";
-      const caption = (rawText ?? input).trim();
-      const text = [pasted, caption].filter(Boolean).join("\n\n");
+      const text = (rawText ?? input).trim();
       const imageDataUrl = pendingImage;
       const document = pendingDocument;
       if (
@@ -583,7 +545,6 @@ export function ChatScreen({
       setInput("");
       setPendingImage(null);
       setPendingDocument(null);
-      setPendingPastedText(null);
 
       await streamFromHistory(history);
     },
@@ -591,7 +552,6 @@ export function ChatScreen({
       input,
       pendingDocument,
       pendingImage,
-      pendingPastedText,
       streaming,
       streamFromHistory,
       config,
@@ -619,7 +579,7 @@ export function ChatScreen({
   async function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file || pendingPastedText || streaming || attaching) {
+    if (!file || streaming || attaching) {
       return;
     }
 
@@ -649,7 +609,7 @@ export function ChatScreen({
   ) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file || pendingPastedText || streaming || attaching) {
+    if (!file || streaming || attaching) {
       return;
     }
 
@@ -707,7 +667,6 @@ export function ChatScreen({
     setInput("");
     setPendingImage(null);
     setPendingDocument(null);
-    setPendingPastedText(null);
     setErrorMessage(null);
     setStreaming(false);
     setModelPickerOpen(false);
@@ -855,14 +814,8 @@ export function ChatScreen({
 
             {messages.length > 0 ? (
               <ChatMessageColumn>
-                {messages.map((message, index) => (
-                  <div
-                    key={message.id}
-                    ref={
-                      index === messages.length - 1 ? lastMessageRef : undefined
-                    }
-                    className="scroll-mt-composer-top"
-                  >
+                {messages.map((message) => (
+                  <div key={message.id} className="scroll-mt-composer-top">
                     <ChatBubble
                       message={message}
                       actionsDisabled={streaming}
@@ -928,9 +881,7 @@ export function ChatScreen({
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    disabled={
-                      composerLocked || attaching || pendingPastedText !== null
-                    }
+                    disabled={composerLocked || attaching}
                     onChange={handleImageSelect}
                   />
                   <input
@@ -938,17 +889,13 @@ export function ChatScreen({
                     type="file"
                     accept={DOCUMENT_FILE_ACCEPT}
                     className="hidden"
-                    disabled={
-                      composerLocked || attaching || pendingPastedText !== null
-                    }
+                    disabled={composerLocked || attaching}
                     onChange={(event) => void handleDocumentSelect(event)}
                   />
                   <button
                     type="button"
                     className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
-                    disabled={
-                      composerLocked || attaching || pendingPastedText !== null
-                    }
+                    disabled={composerLocked || attaching}
                     onClick={() => {
                       if (composerLocked || attaching) {
                         return;
@@ -962,9 +909,7 @@ export function ChatScreen({
                   <button
                     type="button"
                     className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
-                    disabled={
-                      composerLocked || attaching || pendingPastedText !== null
-                    }
+                    disabled={composerLocked || attaching}
                     onClick={() => {
                       if (composerLocked || attaching) {
                         return;
@@ -978,80 +923,69 @@ export function ChatScreen({
                 </div>
               </div>
 
-              {pendingImage ? (
-                <ImagePreviewPanel
-                  src={pendingImage}
-                  onRemove={() => setPendingImage(null)}
-                />
-              ) : null}
+              <div className="border-t border-border-subtle">
+                {hasComposerPreview ? (
+                  <div className="flex flex-wrap items-start gap-2 px-composer pt-composer">
+                    {pendingImage ? (
+                      <ImagePreviewPanel
+                        src={pendingImage}
+                        onRemove={() => setPendingImage(null)}
+                      />
+                    ) : null}
 
-              {pendingDocument ? (
-                <DocumentPreviewPanel
-                  fileName={pendingDocument.fileName}
-                  onRemove={() => setPendingDocument(null)}
-                />
-              ) : null}
+                    {pendingDocument ? (
+                      <DocumentPreviewPanel
+                        fileName={pendingDocument.fileName}
+                        onRemove={() => setPendingDocument(null)}
+                      />
+                    ) : null}
+                  </div>
+                ) : null}
 
-              {pendingPastedText ? (
-                <PastedTextPreview
-                  layout="composer"
-                  text={pendingPastedText}
-                  onRemove={() => setPendingPastedText(null)}
-                />
-              ) : null}
-
-              <div
-                className={cn(
-                  "flex items-end gap-3 px-composer py-composer",
-                  !pendingImage &&
-                    !pendingDocument &&
-                    !pendingPastedText &&
-                    "border-t border-border-subtle",
-                )}
-              >
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(event) =>
-                    handleComposerInputChange(event.target.value)
-                  }
-                  onPaste={handleComposerPaste}
-                  onKeyDown={handleComposerKeyDown}
-                  rows={1}
-                  enterKeyHint="enter"
-                  placeholder={copy.chat_screen_input_header.placeholder}
-                  aria-label={copy.chat_screen_input_header.placeholder}
-                  disabled={composerLocked}
-                  className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none rounded-token-sm bg-transparent px-0 py-[7px] text-base leading-[1.5] outline-none focus-visible:outline-2 focus-visible:outline-focus-ring placeholder:text-text-muted disabled:opacity-50 md:text-token-body"
-                />
-                {streaming ? (
-                  <button
-                    type="button"
-                    className="inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm bg-accent-primary text-text-on-accent transition-colors"
-                    onClick={() => abortRef.current?.abort()}
-                    aria-label="Stop generating"
-                  >
-                    <Square
-                      className="size-[calc(var(--icon-size)-4px)]"
-                      fill="currentColor"
-                    />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className={cn(
-                      "inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm transition-colors",
-                      canSend
-                        ? "bg-accent-primary text-text-on-accent"
-                        : "bg-disabled-bg text-disabled-text",
-                    )}
-                    disabled={!canSend}
-                    onClick={() => void handleSend()}
-                    aria-label="Send"
-                  >
-                    <ArrowUp className="size-[var(--icon-size)]" />
-                  </button>
-                )}
+                <div className="flex items-end gap-3 px-composer py-composer">
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(event) =>
+                      handleComposerInputChange(event.target.value)
+                    }
+                    onKeyDown={handleComposerKeyDown}
+                    rows={1}
+                    enterKeyHint="enter"
+                    placeholder={copy.chat_screen_input_header.placeholder}
+                    aria-label={copy.chat_screen_input_header.placeholder}
+                    disabled={composerLocked}
+                    className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none rounded-token-sm bg-transparent px-0 py-[7px] text-base leading-[1.5] outline-none focus-visible:outline-2 focus-visible:outline-focus-ring placeholder:text-text-muted disabled:opacity-50 md:text-token-body"
+                  />
+                  {streaming ? (
+                    <button
+                      type="button"
+                      className="inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm bg-accent-primary text-text-on-accent transition-colors"
+                      onClick={() => abortRef.current?.abort()}
+                      aria-label="Stop generating"
+                    >
+                      <Square
+                        className="size-[calc(var(--icon-size)-4px)]"
+                        fill="currentColor"
+                      />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className={cn(
+                        "inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm transition-colors",
+                        canSend
+                          ? "bg-accent-primary text-text-on-accent"
+                          : "bg-disabled-bg text-disabled-text",
+                      )}
+                      disabled={!canSend}
+                      onClick={() => void handleSend()}
+                      aria-label="Send"
+                    >
+                      <ArrowUp className="size-[var(--icon-size)]" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

@@ -48,7 +48,8 @@
     "checking": "Checking…"
   },
   "chat_bubble": {
-    "pasted": "PASTED",
+    "read_more": "Read more",
+    "show_less": "Show less",
     "copy": "Salin",
     "retry": "Retry"
   },

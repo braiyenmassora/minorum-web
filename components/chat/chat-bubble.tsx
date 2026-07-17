@@ -6,7 +6,8 @@ import { useState } from "react";
 import { ChatImage } from "@/components/chat/chat-image";
 import { ChatMarkdown } from "@/components/chat/chat-markdown";
 import { ChatMessageActions } from "@/components/chat/chat-message-actions";
-import { PastedTextPreview } from "@/components/chat/pasted-text-preview";
+import { PlainTextWithLinks } from "@/components/chat/plain-text-with-links";
+import { getAppCopy } from "@/lib/core/copy/app-copy";
 import { UserMessageActions } from "@/components/chat/user-message-actions";
 import type { Message } from "@/lib/models/message";
 import {
@@ -27,22 +28,32 @@ type ChatBubbleProps = {
 function UserBubbleText({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
   const truncatable = isLongUserText(text);
-
-  if (!truncatable) {
-    return (
-      <div className="w-fit max-w-[var(--user-bubble-max-width)] min-w-0 rounded-token bg-user-bubble px-3.5 py-2.5 text-token-body leading-[1.55] text-text-on-user">
-        <p className="break-words whitespace-pre-wrap">{text}</p>
-      </div>
-    );
-  }
+  const copy = getAppCopy();
 
   return (
-    <PastedTextPreview
-      text={text}
-      layout="bubble"
-      expanded={expanded}
-      onToggleExpand={() => setExpanded((value) => !value)}
-    />
+    <div className="w-fit max-w-[var(--user-bubble-max-width)] min-w-0 rounded-token bg-user-bubble px-3.5 py-2.5 text-token-body leading-[1.55] text-text-on-user">
+      <p
+        className={cn(
+          "break-words whitespace-pre-wrap",
+          truncatable && !expanded && "line-clamp-6",
+        )}
+      >
+        <PlainTextWithLinks
+          text={text}
+          linkClassName="text-text-on-user underline underline-offset-2 opacity-90 hover:opacity-100"
+        />
+      </p>
+      {truncatable ? (
+        <button
+          type="button"
+          className="mt-1.5 text-[11px] font-semibold tracking-wide text-text-on-user/75 uppercase hover:text-text-on-user"
+          onClick={() => setExpanded((value) => !value)}
+          aria-expanded={expanded}
+        >
+          {expanded ? copy.chat_bubble.show_less : copy.chat_bubble.read_more}
+        </button>
+      ) : null}
+    </div>
   );
 }
 
