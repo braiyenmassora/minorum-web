@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import { Eraser, LogOut, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 import { AppLogo } from "@/components/ui/app-logo";
+import { ResetChatPanel } from "@/components/chat/reset-chat-panel";
 import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
 import { SystemStatusIndicator } from "@/components/chat/system-status-indicator";
 import type { ChatSession } from "@/lib/models/chat-session";
@@ -38,6 +40,7 @@ export function ChatHistorySidebar({
 }: ChatHistorySidebarProps) {
   const copy = getAppCopy().chat_history_sidebar;
   const displayName = accountName?.trim() || copy.account;
+  const [confirmingClearAll, setConfirmingClearAll] = useState(false);
 
   return (
     <aside
@@ -58,7 +61,7 @@ export function ChatHistorySidebar({
           <button
             type="button"
             className="inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-error disabled:opacity-40 md:size-7"
-            onClick={onClearAll}
+            onClick={() => setConfirmingClearAll(true)}
             disabled={sessions.length === 0}
             aria-label={copy.clear_all}
             title={copy.clear_all}
@@ -77,6 +80,18 @@ export function ChatHistorySidebar({
           <ThemeToggleButton />
         </div>
       </div>
+
+      <ResetChatPanel
+        open={confirmingClearAll}
+        body={copy.clear_all_confirm_body}
+        confirmLabel={copy.clear_all_confirm}
+        cancelLabel={copy.clear_all_cancel}
+        onCancel={() => setConfirmingClearAll(false)}
+        onConfirm={() => {
+          setConfirmingClearAll(false);
+          onClearAll();
+        }}
+      />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
         {sessions.length === 0 ? (
@@ -98,6 +113,7 @@ export function ChatHistorySidebar({
                         ? "bg-surface-raised text-text-primary"
                         : "text-text-secondary hover:bg-surface-raised/60 hover:text-text-primary",
                     )}
+                    aria-current={isActive ? "true" : undefined}
                     onClick={() => onSelect(session.id)}
                   >
                     <span className="line-clamp-2">{session.title}</span>

@@ -1,3 +1,32 @@
+/** Time-of-day greeting word based on the Asia/Jakarta hour. */
+export function jakartaGreeting(now = new Date()): string {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Jakarta",
+      hour: "2-digit",
+      hourCycle: "h23", // guarantees 00–23, avoids the "24" midnight quirk
+    }).format(now),
+  );
+
+  if (hour >= 5 && hour < 11) {
+    return "Good morning";
+  }
+  if (hour >= 11 && hour < 15) {
+    return "Good afternoon";
+  }
+  if (hour >= 15 && hour < 18) {
+    return "Good evening";
+  }
+  return "Good night";
+}
+
+/** Empty-state greeting title, e.g. "Good morning, Braiyen" (falls back to greeting only). */
+export function formatGreetingTitle(name: string, now = new Date()): string {
+  const firstName = name.trim().split(/\s+/)[0] ?? "";
+  const greeting = jakartaGreeting(now);
+  return firstName ? `${greeting}, ${firstName}` : greeting;
+}
+
 /** Empty-state clock — Asia/Jakarta, e.g. "Jakarta, Indonesia · pukul 08.00 AM" */
 export function formatJakartaEmptySubtitle(now = new Date()): string {
   const time = new Intl.DateTimeFormat("en-US", {

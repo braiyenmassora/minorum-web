@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#0f0f0f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Minorum</title>
@@ -20,8 +20,8 @@
       min-height: 100svh;
       display: grid;
       place-items: center;
-      background: #000;
-      color: #e9edef;
+      background: #0f0f0f;
+      color: #ffffff;
       font-family: Geist, ui-sans-serif, system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
@@ -55,13 +55,13 @@
       line-height: 1.2;
       font-weight: 500;
       letter-spacing: -0.48px;
-      color: #e9edef;
+      color: #ffffff;
     }
     p {
       font-size: 16px;
       line-height: 1.5;
       font-weight: 400;
-      color: #8696a0;
+      color: #a3a3a3;
     }
     form {
       display: flex;
@@ -74,9 +74,9 @@
       width: 100%;
       height: 44px;
       border-radius: 7px;
-      border: 1px solid #141a1d;
-      background: #000;
-      color: #e9edef;
+      border: 1px solid #1f1f1f;
+      background: #171717;
+      color: #ffffff;
       font: inherit;
       font-size: 16px;
       padding: 0 12px;
@@ -84,18 +84,18 @@
       text-align: center;
     }
     input:focus {
-      border-color: #1a2226;
+      border-color: #262626;
     }
     input::placeholder {
-      color: #8696a0;
+      color: #737373;
     }
     button {
       height: 44px;
       margin-top: 0.5rem;
       border: 0;
       border-radius: 7px;
-      background: #144d37;
-      color: #fff;
+      background: #e5e5e5;
+      color: #0f0f0f;
       font: inherit;
       font-size: 13px;
       cursor: pointer;
@@ -167,6 +167,7 @@
       }
       error.textContent = "";
       button.disabled = true;
+      const loginLabel = button.textContent;
       try {
         const name = fullName.value.trim();
         if (!name) {
@@ -174,10 +175,13 @@
           return;
         }
 
+        button.textContent = "Loading…";
         const response = await fetch("/api/gate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password: password.value }),
+          // Don't hang the button forever if the server stalls.
+          signal: AbortSignal.timeout(20000),
         });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok || payload.ok !== true) {
@@ -210,8 +214,13 @@
         window.location.href = "/";
       } catch (err) {
         error.textContent =
-          err instanceof Error ? err.message : "Network error";
+          err && err.name === "TimeoutError"
+            ? "Connection timed out"
+            : err instanceof Error
+              ? err.message
+              : "Network error";
       } finally {
+        button.textContent = loginLabel;
         syncLoginEnabled();
       }
     });

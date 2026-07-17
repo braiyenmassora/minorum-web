@@ -7,6 +7,7 @@ import {
   ImageIcon,
   Menu,
   Plus,
+  Square,
 } from "lucide-react";
 import {
   useCallback,
@@ -14,6 +15,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type ClipboardEvent,
 } from "react";
 
 import { ChatBubble } from "@/components/chat/chat-bubble";
@@ -23,12 +25,17 @@ import {
   DocumentPreviewPanel,
   ImagePreviewPanel,
 } from "@/components/chat/image-preview-panel";
+import { PastedTextPreview } from "@/components/chat/pasted-text-preview";
 import { ModelPickerPanel } from "@/components/chat/model-picker-panel";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { AppLogo } from "@/components/ui/app-logo";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
 import type { AppConfig } from "@/lib/core/config/app-config";
+import {
+  DEFAULT_WEB_TOOLS_CONFIG,
+  type WebToolsConfig,
+} from "@/lib/core/config/web-tools-config";
 import {
   comboIdsFromEntries,
   getModelDisplayName,
@@ -66,11 +73,14 @@ import { cn } from "@/lib/utils";
 import {
   fetchServerClockOffsetMs,
   formatJakartaEmptySubtitle,
+  jakartaGreeting,
   serverAlignedNow,
 } from "@/lib/utils/jakarta-clock";
+import { isLongUserText } from "@/lib/utils/long-user-text";
 
 type ChatScreenProps = {
   config: AppConfig;
+  webToolsConfig?: WebToolsConfig;
   onLogout: () => void;
 };
 
@@ -87,6 +97,7 @@ function createId(): string {
 
 export function ChatScreen({
   config: initialConfig,
+  webToolsConfig = DEFAULT_WEB_TOOLS_CONFIG,
   onLogout,
 }: ChatScreenProps) {
   const copy = getAppCopy();
@@ -104,6 +115,9 @@ export function ChatScreen({
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const [pendingDocument, setPendingDocument] =
     useState<PendingDocument | null>(null);
+  const [pendingPastedText, setPendingPastedText] = useState<string | null>(
+    null,
+  );
   const [attachingImage, setAttachingImage] = useState(false);
   const [attachingDocument, setAttachingDocument] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -111,6 +125,7 @@ export function ChatScreen({
   const [emptySubtitle, setEmptySubtitle] = useState(
     formatJakartaEmptySubtitle,
   );
+  const [greeting, setGreeting] = useState(jakartaGreeting);
   const [systemStatus, setSystemStatus] = useState<SystemStatus>("checking");
   const [historyOpen, setHistoryOpen] = useState(false);
   const serverClockOffsetMsRef = useRef(0);
@@ -185,6 +200,8 @@ export function ChatScreen({
 
     if (value.length <= COMPOSER_GROW_CHAR_LIMIT) {
       textarea.style.height = `${textarea.scrollHeight}px`;
+      // CSS max-height may clamp a tall draft on mobile — allow internal scroll.
+      textarea.style.overflowY = "auto";
       return;
     }
 
@@ -246,20 +263,27 @@ export function ChatScreen({
       return;
     }
 
+    // Honor reduced-motion: JS scroll APIs ignore CSS scroll-behavior.
+    const behavior: ScrollBehavior = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches
+      ? "auto"
+      : "smooth";
+
     requestAnimationFrame(() => {
       const lastMessage = messages[messages.length - 1];
 
       if (streaming && lastMessage?.role === "assistant") {
-        container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+        container.scrollTo({ top: container.scrollHeight, behavior });
         return;
       }
 
       if (lastMessageEl) {
-        lastMessageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        lastMessageEl.scrollIntoView({ behavior, block: "start" });
         return;
       }
 
-      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      container.scrollTo({ top: container.scrollHeight, behavior });
     });
   }, [messages, streaming]);
 
@@ -273,26 +297,76 @@ export function ChatScreen({
     container.scrollTop = container.scrollHeight;
   }, [modelPickerOpen]);
 
+  const composerLocked = streaming;
+  const attaching = attachingImage || attachingDocument;
+
   const canSend =
     Boolean(config.modelName.trim()) &&
     (input.trim().length > 0 ||
+      Boolean(pendingPastedText?.trim()) ||
       pendingImage !== null ||
       pendingDocument !== null) &&
-    !streaming;
+    !streaming &&
+    !attaching;
 
   const showEmptyState = messages.length === 0 && !streaming;
 
+  const handleComposerInputChange = useCallback(
+    (value: string) => {
+      if (composerLocked) {
+        return;
+      }
+      if (pendingPastedText) {
+        setInput(value);
+        return;
+      }
+      const trimmed = value.trim();
+      if (trimmed && isLongUserText(trimmed)) {
+        setPendingPastedText(trimmed);
+        setInput("");
+        return;
+      }
+      setInput(value);
+    },
+    [composerLocked, pendingPastedText],
+  );
+
+  const handleComposerPaste = useCallback(
+    (event: ClipboardEvent<HTMLTextAreaElement>) => {
+      if (composerLocked) {
+        return;
+      }
+      const pasted = event.clipboardData.getData("text");
+      if (!pasted || !isLongUserText(pasted.trim())) {
+        return;
+      }
+      event.preventDefault();
+      setPendingPastedText(pasted.trim());
+    },
+    [composerLocked],
+  );
+
   useEffect(() => {
     let cancelled = false;
+    let inFlight = false;
     const abort = new AbortController();
 
     const run = async (showChecking: boolean) => {
+      // Non-overlap: skip a tick if the previous probe is still running.
+      if (inFlight) {
+        return;
+      }
+      inFlight = true;
       if (showChecking && !cancelled) {
         setSystemStatus("checking");
       }
-      const next = await probeSystemStatus(config, abort.signal);
-      if (!cancelled) {
-        setSystemStatus(next);
+      try {
+        const next = await probeSystemStatus(config, abort.signal);
+        if (!cancelled) {
+          setSystemStatus(next);
+        }
+      } finally {
+        inFlight = false;
       }
     };
 
@@ -306,7 +380,9 @@ export function ChatScreen({
       abort.abort();
       window.clearInterval(id);
     };
-  }, [config]);
+    // Only re-probe when credentials change; model/name edits don't affect reachability.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.apiBaseUrl, config.apiKey]);
 
   useEffect(() => {
     if (!showEmptyState) {
@@ -316,11 +392,9 @@ export function ChatScreen({
     let cancelled = false;
 
     const tick = () => {
-      setEmptySubtitle(
-        formatJakartaEmptySubtitle(
-          serverAlignedNow(serverClockOffsetMsRef.current),
-        ),
-      );
+      const now = serverAlignedNow(serverClockOffsetMsRef.current);
+      setEmptySubtitle(formatJakartaEmptySubtitle(now));
+      setGreeting(jakartaGreeting(now));
     };
 
     void fetchServerClockOffsetMs()
@@ -355,6 +429,7 @@ export function ChatScreen({
     setInput("");
     setPendingImage(null);
     setPendingDocument(null);
+    setPendingPastedText(null);
     setErrorMessage(null);
     setStreaming(false);
     setModelPickerOpen(false);
@@ -392,6 +467,7 @@ export function ChatScreen({
           config,
           messages: requestMessages,
           signal: abortController.signal,
+          webToolsConfig,
         })) {
           if (sessionEpochRef.current !== epoch) {
             return;
@@ -472,12 +548,20 @@ export function ChatScreen({
         }, 0);
       }
     },
-    [activeSessionId, adjustTextareaHeight, config, refreshSessions],
+    [
+      activeSessionId,
+      adjustTextareaHeight,
+      config,
+      refreshSessions,
+      webToolsConfig,
+    ],
   );
 
   const handleSend = useCallback(
     async (rawText?: string) => {
-      const text = (rawText ?? input).trim();
+      const pasted = pendingPastedText?.trim() ?? "";
+      const caption = (rawText ?? input).trim();
+      const text = [pasted, caption].filter(Boolean).join("\n\n");
       const imageDataUrl = pendingImage;
       const document = pendingDocument;
       if (
@@ -499,6 +583,7 @@ export function ChatScreen({
       setInput("");
       setPendingImage(null);
       setPendingDocument(null);
+      setPendingPastedText(null);
 
       await streamFromHistory(history);
     },
@@ -506,6 +591,7 @@ export function ChatScreen({
       input,
       pendingDocument,
       pendingImage,
+      pendingPastedText,
       streaming,
       streamFromHistory,
       config,
@@ -533,19 +619,26 @@ export function ChatScreen({
   async function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file) {
+    if (!file || pendingPastedText || streaming || attaching) {
       return;
     }
 
+    // Guard against session switches while the file is being processed.
+    const epoch = sessionEpochRef.current;
     setAttachingImage(true);
     setErrorMessage(null);
 
     try {
       const prepared = await prepareImageAttachment(file);
+      if (sessionEpochRef.current !== epoch) {
+        return;
+      }
       setPendingImage(prepared.dataUrl);
       setModelPickerOpen(false);
     } catch {
-      setErrorMessage(getAppCopy().error_and_snackbar_messages.unknown);
+      if (sessionEpochRef.current === epoch) {
+        setErrorMessage(getAppCopy().error_and_snackbar_messages.unknown);
+      }
     } finally {
       setAttachingImage(false);
     }
@@ -556,26 +649,32 @@ export function ChatScreen({
   ) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file) {
+    if (!file || pendingPastedText || streaming || attaching) {
       return;
     }
 
+    const epoch = sessionEpochRef.current;
     setAttachingDocument(true);
     setErrorMessage(null);
 
     try {
       const prepared = await prepareDocumentAttachment(file);
+      if (sessionEpochRef.current !== epoch) {
+        return;
+      }
       setPendingDocument({
         dataUrl: prepared.dataUrl,
         fileName: prepared.fileName,
       });
       setModelPickerOpen(false);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : getAppCopy().error_and_snackbar_messages.unknown,
-      );
+      if (sessionEpochRef.current === epoch) {
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : getAppCopy().error_and_snackbar_messages.unknown,
+        );
+      }
     } finally {
       setAttachingDocument(false);
     }
@@ -608,6 +707,7 @@ export function ChatScreen({
     setInput("");
     setPendingImage(null);
     setPendingDocument(null);
+    setPendingPastedText(null);
     setErrorMessage(null);
     setStreaming(false);
     setModelPickerOpen(false);
@@ -695,7 +795,11 @@ export function ChatScreen({
         </SheetContent>
       </Sheet>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <main
+        className="flex min-w-0 flex-1 flex-col"
+        aria-busy={streaming}
+        aria-label={copy.chat_history_sidebar.title}
+      >
         <header className="flex shrink-0 items-center gap-1.5 border-b border-border-subtle pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-2 pl-[max(var(--content-inset),env(safe-area-inset-left,0px))] pr-[max(var(--content-inset),env(safe-area-inset-right,0px))] md:hidden">
           <button
             type="button"
@@ -738,7 +842,9 @@ export function ChatScreen({
                 <AppLogo size={56} priority />
                 <div className="flex flex-col gap-1 text-center">
                   <h1 className="text-[24px] leading-[1.2] font-medium tracking-[-0.48px] text-text-primary">
-                    {copy.chat_screen_empty_state.title}
+                    {config.fullName.trim()
+                      ? `${greeting}, ${config.fullName.trim().split(/\s+/)[0]}`
+                      : greeting}
                   </h1>
                   <p className="text-token-body text-text-secondary">
                     {emptySubtitle}
@@ -787,7 +893,10 @@ export function ChatScreen({
 
             <div className="overflow-hidden rounded-token border border-border-subtle bg-assistant-bubble shadow-floating">
               {errorMessage ? (
-                <div className="border-b border-border-subtle px-composer py-composer text-token-label text-error">
+                <div
+                  role="alert"
+                  className="border-b border-border-subtle px-composer py-composer text-token-label text-error"
+                >
                   {errorMessage}
                 </div>
               ) : null}
@@ -797,9 +906,11 @@ export function ChatScreen({
                   type="button"
                   className="inline-flex min-w-0 flex-1 items-center gap-1 text-left text-token-body font-bold text-text-primary transition-opacity hover:opacity-80 disabled:pointer-events-none"
                   onClick={openModelPicker}
-                  disabled={streaming}
+                  disabled={composerLocked}
                   title={config.modelName}
+                  aria-haspopup="listbox"
                   aria-expanded={modelPickerOpen}
+                  aria-controls="model-picker-panel"
                 >
                   <span className="truncate">
                     {getModelDisplayName(config.modelName)}
@@ -817,6 +928,9 @@ export function ChatScreen({
                     type="file"
                     accept="image/*"
                     className="hidden"
+                    disabled={
+                      composerLocked || attaching || pendingPastedText !== null
+                    }
                     onChange={handleImageSelect}
                   />
                   <input
@@ -824,13 +938,23 @@ export function ChatScreen({
                     type="file"
                     accept={DOCUMENT_FILE_ACCEPT}
                     className="hidden"
+                    disabled={
+                      composerLocked || attaching || pendingPastedText !== null
+                    }
                     onChange={(event) => void handleDocumentSelect(event)}
                   />
                   <button
                     type="button"
                     className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
-                    disabled={streaming || attachingImage}
-                    onClick={() => fileInputRef.current?.click()}
+                    disabled={
+                      composerLocked || attaching || pendingPastedText !== null
+                    }
+                    onClick={() => {
+                      if (composerLocked || attaching) {
+                        return;
+                      }
+                      fileInputRef.current?.click();
+                    }}
                     aria-label={copy.chat_screen_input_header.attach_image}
                   >
                     <ImageIcon className="size-[var(--icon-size)]" />
@@ -838,8 +962,15 @@ export function ChatScreen({
                   <button
                     type="button"
                     className="inline-flex size-[var(--composer-icon-size)] items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary disabled:opacity-40"
-                    disabled={streaming || attachingDocument}
-                    onClick={() => documentInputRef.current?.click()}
+                    disabled={
+                      composerLocked || attaching || pendingPastedText !== null
+                    }
+                    onClick={() => {
+                      if (composerLocked || attaching) {
+                        return;
+                      }
+                      documentInputRef.current?.click();
+                    }}
                     aria-label={copy.chat_screen_input_header.attach_document}
                   >
                     <FileText className="size-[var(--icon-size)]" />
@@ -861,44 +992,71 @@ export function ChatScreen({
                 />
               ) : null}
 
+              {pendingPastedText ? (
+                <PastedTextPreview
+                  layout="composer"
+                  text={pendingPastedText}
+                  onRemove={() => setPendingPastedText(null)}
+                />
+              ) : null}
+
               <div
                 className={cn(
                   "flex items-end gap-3 px-composer py-composer",
                   !pendingImage &&
                     !pendingDocument &&
+                    !pendingPastedText &&
                     "border-t border-border-subtle",
                 )}
               >
                 <textarea
                   ref={textareaRef}
                   value={input}
-                  onChange={(event) => setInput(event.target.value)}
+                  onChange={(event) =>
+                    handleComposerInputChange(event.target.value)
+                  }
+                  onPaste={handleComposerPaste}
                   onKeyDown={handleComposerKeyDown}
                   rows={1}
                   enterKeyHint="enter"
                   placeholder={copy.chat_screen_input_header.placeholder}
-                  disabled={streaming}
-                  className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none bg-transparent px-0 py-[7px] text-base leading-[1.5] outline-none placeholder:text-text-muted disabled:opacity-50 md:text-token-body"
+                  aria-label={copy.chat_screen_input_header.placeholder}
+                  disabled={composerLocked}
+                  className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none rounded-token-sm bg-transparent px-0 py-[7px] text-base leading-[1.5] outline-none focus-visible:outline-2 focus-visible:outline-focus-ring placeholder:text-text-muted disabled:opacity-50 md:text-token-body"
                 />
-                <button
-                  type="button"
-                  className={cn(
-                    "inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm transition-colors",
-                    canSend
-                      ? "bg-user-bubble text-white"
-                      : "bg-disabled-bg text-disabled-text",
-                  )}
-                  disabled={!canSend}
-                  onClick={() => void handleSend()}
-                  aria-label="Send"
-                >
-                  <ArrowUp className="size-[var(--icon-size)]" />
-                </button>
+                {streaming ? (
+                  <button
+                    type="button"
+                    className="inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm bg-accent-primary text-text-on-accent transition-colors"
+                    onClick={() => abortRef.current?.abort()}
+                    aria-label="Stop generating"
+                  >
+                    <Square
+                      className="size-[calc(var(--icon-size)-4px)]"
+                      fill="currentColor"
+                    />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={cn(
+                      "inline-flex size-[var(--composer-icon-size)] shrink-0 items-center justify-center rounded-token-sm transition-colors",
+                      canSend
+                        ? "bg-accent-primary text-text-on-accent"
+                        : "bg-disabled-bg text-disabled-text",
+                    )}
+                    disabled={!canSend}
+                    onClick={() => void handleSend()}
+                    aria-label="Send"
+                  >
+                    <ArrowUp className="size-[var(--icon-size)]" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

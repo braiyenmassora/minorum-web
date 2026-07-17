@@ -51,12 +51,39 @@ function readRaw(): ChatSession[] {
   }
 }
 
-function writeRaw(sessions: ChatSession[]): void {
+function isQuotaError(error: unknown): boolean {
+  return (
+    error instanceof DOMException &&
+    // Different browsers report quota errors under different names/codes.
+    (error.name === "QuotaExceededError" ||
+      error.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+      error.code === 22)
+  );
+}
+
+/**
+ * Persists sessions, degrading gracefully when localStorage is full (e.g. a
+ * chat with large base64 attachments). Drops the oldest sessions and retries
+ * so the newest chat still saves instead of throwing into the caller.
+ */
+function writeRaw(sessions: ChatSession[]): boolean {
   if (!isBrowser()) {
-    return;
+    return false;
   }
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(clampSessions(sessions)));
+  let toStore = clampSessions(sessions);
+  while (true) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+      return true;
+    } catch (error) {
+      if (!isQuotaError(error) || toStore.length === 0) {
+        return false;
+      }
+      // Evict the oldest (clampSessions sorts newest-first) and retry.
+      toStore = toStore.slice(0, toStore.length - 1);
+    }
+  }
 }
 
 export function listChatSessions(): ChatSession[] {

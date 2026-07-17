@@ -3,27 +3,27 @@
     {
       "key": "operational",
       "label": "All Systems Operational",
-      "color": "green"
+      "tone": "success"
     },
     {
       "key": "degraded_performance",
       "label": "Degraded Performance",
-      "color": "yellow"
+      "tone": "warning"
     },
     {
       "key": "partial_outage",
       "label": "Partial Outage",
-      "color": "orange"
+      "tone": "severe"
     },
     {
       "key": "major_outage",
       "label": "Major Outage",
-      "color": "red"
+      "tone": "danger"
     },
     {
       "key": "maintenance",
       "label": "Scheduled Maintenance",
-      "color": "blue"
+      "tone": "info"
     }
   ]
 }

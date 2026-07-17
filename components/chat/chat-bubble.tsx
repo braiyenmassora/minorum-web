@@ -6,8 +6,8 @@ import { useState } from "react";
 import { ChatImage } from "@/components/chat/chat-image";
 import { ChatMarkdown } from "@/components/chat/chat-markdown";
 import { ChatMessageActions } from "@/components/chat/chat-message-actions";
+import { PastedTextPreview } from "@/components/chat/pasted-text-preview";
 import { UserMessageActions } from "@/components/chat/user-message-actions";
-import { getAppCopy } from "@/lib/core/copy/app-copy";
 import type { Message } from "@/lib/models/message";
 import {
   getMessageFiles,
@@ -15,9 +15,8 @@ import {
   getMessageText,
 } from "@/lib/models/message-content";
 import { cn } from "@/lib/utils";
+import { isLongUserText } from "@/lib/utils/long-user-text";
 import { normalizeAssistantMarkdown } from "@/lib/utils/normalize-assistant-markdown";
-
-const USER_TEXT_PREVIEW_CHARS = 500;
 
 type ChatBubbleProps = {
   message: Message;
@@ -27,26 +26,23 @@ type ChatBubbleProps = {
 
 function UserBubbleText({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
-  const copy = getAppCopy().chat_bubble;
-  const truncatable = text.length > USER_TEXT_PREVIEW_CHARS;
-  const shown =
-    truncatable && !expanded
-      ? `${text.slice(0, USER_TEXT_PREVIEW_CHARS)}…`
-      : text;
+  const truncatable = isLongUserText(text);
+
+  if (!truncatable) {
+    return (
+      <div className="w-fit max-w-[var(--user-bubble-max-width)] min-w-0 rounded-token bg-user-bubble px-3.5 py-2.5 text-token-body leading-[1.55] text-text-on-user">
+        <p className="break-words whitespace-pre-wrap">{text}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-fit max-w-full min-w-0 rounded-token bg-user-bubble px-3.5 py-2.5 text-token-body leading-[1.55] text-white">
-      <p className="break-words whitespace-pre-wrap">{shown}</p>
-      {truncatable ? (
-        <button
-          type="button"
-          className="mt-1 text-token-body-medium text-white/45 transition-colors hover:text-white/65"
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? copy.show_less : copy.show_more}
-        </button>
-      ) : null}
-    </div>
+    <PastedTextPreview
+      text={text}
+      layout="bubble"
+      expanded={expanded}
+      onToggleExpand={() => setExpanded((value) => !value)}
+    />
   );
 }
 

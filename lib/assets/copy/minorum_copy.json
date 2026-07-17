@@ -23,10 +23,6 @@
     "hide_api_key": "Sembunyikan",
     "cancel": "Batal"
   },
-  "chat_screen_empty_state": {
-    "title": "Just Start, We'll Figure It Out",
-    "subtitle": "Jakarta, Indonesia · pukul 08.00 AM"
-  },
   "chat_screen_input_header": {
     "model_prefix": "Model:",
     "new_chat": "New chat",
@@ -39,6 +35,9 @@
     "title": "Minorum",
     "new_chat": "New chat",
     "clear_all": "Clear all chats",
+    "clear_all_confirm_body": "Semua chat bakal dihapus permanen. Config API tetap aman.",
+    "clear_all_confirm": "Hapus semua",
+    "clear_all_cancel": "Batal",
     "empty": "No chats yet",
     "delete": "Delete",
     "close": "Close",
@@ -49,8 +48,7 @@
     "checking": "Checking…"
   },
   "chat_bubble": {
-    "show_more": "Show more",
-    "show_less": "Show less",
+    "pasted": "PASTED",
     "copy": "Salin",
     "retry": "Retry"
   },

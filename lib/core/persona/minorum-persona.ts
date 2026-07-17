@@ -1,5 +1,10 @@
 import persona from "@/lib/core/persona/minorum_persona.json";
 
+export type SystemPromptOptions = {
+  /** True when web_search tools are attached to this chat request. */
+  webToolsActive?: boolean;
+};
+
 function bulletList(items: string[]): string {
   return items.map((item) => `- ${item}`).join("\n");
 }
@@ -14,17 +19,33 @@ function entries(record: Record<string, string>): string {
     .join("\n");
 }
 
-function buildSystemPrompt(): string {
+export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
+  const webToolsActive = options.webToolsActive ?? false;
   const lang = persona.communication.language;
   const mix = persona.communication.englishMix;
   const domains = persona.knowledgeDomains;
   const skill = persona.skillLevelDetection;
   const humor = persona.humor;
   const formatting = persona.responseFormatting;
+  const tech = persona.technicalCapabilities;
+
+  const webAccessLines = [
+    tech.note,
+    "",
+    `Available in THIS request: ${webToolsActive ? "YES — web_search tool is attached; verify link content before answering." : "NO — do not claim you opened or browsed URLs."}`,
+    `Catalog setting: ${tech.webAccess.available} (${tech.webAccess.condition})`,
+    "",
+    "Behavior:",
+    bulletList(tech.webAccess.behavior),
+    "",
+    `Link output: ${tech.linkOutput.rule}`,
+  ];
 
   const parts: string[] = [
     `Kamu adalah ${persona.identity.name}, ${persona.identity.role}. ${persona.identity.mission}`,
     persona.identity.persona,
+    "",
+    section("Technical capabilities", webAccessLines.join("\n")),
     "",
     section(
       "Personality",
@@ -215,7 +236,7 @@ function buildSystemPrompt(): string {
   return parts.join("\n");
 }
 
-/** Full system message sent to the chat API. */
+/** Default system prompt (no web tools). */
 export const systemPrompt = buildSystemPrompt();
 
 export const personaMeta = {

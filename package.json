@@ -15,7 +15,11 @@
     "check:app-copy": "npx tsx lib/core/copy/app-copy.check.ts",
     "check:image": "npx tsx lib/services/image-attachment-service.check.ts",
     "check:document": "npx tsx lib/services/document-attachment-service.check.ts",
-    "check:speech": "npx tsx lib/utils/message-speech.check.ts"
+    "check:speech": "npx tsx lib/utils/message-speech.check.ts",
+    "check:status": "npx tsx lib/services/system-status-service.check.ts",
+    "check:chat-service": "npx tsx lib/services/chat-service.check.ts",
+    "check:history": "npx tsx lib/services/chat-history-storage-service.check.ts",
+    "check:web-tools": "npx tsx lib/core/config/web-tools-config.check.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

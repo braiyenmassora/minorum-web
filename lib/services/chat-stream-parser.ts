@@ -37,6 +37,10 @@ export class ChatStreamParser {
 
   push(chunk: string): string[] {
     this.buffer += chunk;
+    // Normalize CRLF → LF so event boundaries match whether the provider
+    // sends "\n\n" or "\r\n\r\n". A "\r\n" split across chunks reunites in
+    // the buffer before the next scan.
+    this.buffer = this.buffer.replace(/\r\n/g, "\n");
     const tokens: string[] = [];
 
     let boundary = this.buffer.indexOf("\n\n");

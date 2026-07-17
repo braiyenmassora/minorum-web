@@ -15,7 +15,7 @@ export function ChatImage({
 }: ChatImageProps) {
   const dimension =
     size === "preview"
-      ? "var(--chat-image-preview)"
+      ? "var(--chat-attachment-preview)"
       : "var(--chat-image-bubble)";
 
   return (

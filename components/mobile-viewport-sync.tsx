@@ -18,7 +18,7 @@ export function MobileViewportSync() {
 
     const syncThemeColor = () => {
       const dark = root.classList.contains("dark");
-      const color = dark ? "#000000" : "#f0f2f5";
+      const color = dark ? "#0f0f0f" : "#f5f5f5";
       let meta = document.querySelector('meta[name="theme-color"]');
       if (!meta) {
         meta = document.createElement("meta");

@@ -1,5 +1,11 @@
 export type ChatApiErrorKind =
-  "auth" | "network" | "server" | "timeout" | "cancelled" | "unknown";
+  | "auth"
+  | "network"
+  | "server"
+  | "timeout"
+  | "cancelled"
+  | "tools_rejected"
+  | "unknown";
 
 const USER_MESSAGES: Record<ChatApiErrorKind, string> = {
   auth: "API key/URL salah",
@@ -7,6 +13,7 @@ const USER_MESSAGES: Record<ChatApiErrorKind, string> = {
   server: "Server rewel",
   timeout: "Kelamaan nunggu",
   cancelled: "",
+  tools_rejected: "",
   unknown: "Ada yang salah",
 };
 
@@ -42,6 +49,10 @@ export function classifyFetchError(error: unknown): ChatApiErrorKind {
 
 export function isRetryableKind(kind: ChatApiErrorKind): boolean {
   return kind === "network" || kind === "server" || kind === "timeout";
+}
+
+export function isToolsRejectedError(error: unknown): boolean {
+  return error instanceof ChatApiError && error.kind === "tools_rejected";
 }
 
 export function toChatApiError(error: unknown): ChatApiError {

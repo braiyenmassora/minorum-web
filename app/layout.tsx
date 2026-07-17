@@ -44,9 +44,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // Pinch zoom left enabled for accessibility (no maximumScale / userScalable lock).
   viewportFit: "cover",
-  themeColor: "#000000",
+  themeColor: "#0f0f0f",
   // Android Chrome: shrink layout when keyboard opens
   interactiveWidget: "resizes-content",
 };
@@ -65,7 +65,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var k="minorum_theme";var t=localStorage.getItem(k);if(t!=="light"&&t!=="dark"){t="dark";localStorage.setItem(k,t);}if(t==="light"){document.documentElement.classList.remove("dark");document.documentElement.style.colorScheme="light";}else{document.documentElement.classList.add("dark");document.documentElement.style.colorScheme="dark";}}catch(e){document.documentElement.classList.add("dark");}})();`,
+            __html: `(function(){try{var k="minorum_theme";var t=localStorage.getItem(k);if(t!=="light"&&t!=="dark"){t="dark";localStorage.setItem(k,t);}var el=document.documentElement;var dark=t!=="light";if(dark){el.classList.add("dark");el.style.colorScheme="dark";}else{el.classList.remove("dark");el.style.colorScheme="light";}var c=dark?"#0f0f0f":"#f5f5f5";var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement("meta");m.setAttribute("name","theme-color");document.head.appendChild(m);}m.setAttribute("content",c);}catch(e){document.documentElement.classList.add("dark");}})();`,
           }}
         />
       </head>

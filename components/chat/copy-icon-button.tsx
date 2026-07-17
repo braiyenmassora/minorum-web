@@ -43,6 +43,9 @@ export function CopyIconButton({
       ) : (
         <Copy className="size-3.5" aria-hidden />
       )}
+      <span className="sr-only" role="status" aria-live="polite">
+        {copied ? "Disalin" : ""}
+      </span>
     </button>
   );
 }

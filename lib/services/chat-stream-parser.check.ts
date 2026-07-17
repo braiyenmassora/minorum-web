@@ -32,4 +32,21 @@ assert(
 );
 assert(splitParser.push("\n").join("") === "A", "complete split block");
 
+// CRLF SSE separators (some providers/proxies emit \r\n\r\n).
+const crlfParser = new ChatStreamParser();
+const crlfTokens = crlfParser.push(
+  'data: {"choices":[{"delta":{"content":"C"}}]}\r\n\r\n' +
+    'data: {"choices":[{"delta":{"content":"R"}}]}\r\n\r\n',
+);
+assert(crlfTokens.join("") === "CR", "parser handles CRLF blocks");
+
+// CRLF split across chunk boundaries must still reunite.
+const crlfSplit = new ChatStreamParser();
+assert(
+  crlfSplit.push('data: {"choices":[{"delta":{"content":"X"}}]}\r\n\r')
+    .length === 0,
+  "CRLF wait for full boundary",
+);
+assert(crlfSplit.push("\n").join("") === "X", "CRLF completes across chunks");
+
 console.log("chat-stream-parser checks passed");

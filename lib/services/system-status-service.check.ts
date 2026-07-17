@@ -13,7 +13,8 @@ assert(
   getStatusDefinition("operational").label === "All Systems Operational",
   "operational label",
 );
-assert(getStatusDefinition("major_outage").color === "red", "major color");
+assert(getStatusDefinition("major_outage").tone === "danger", "major tone");
+assert(getStatusDefinition("operational").tone === "success", "op tone");
 assert(resolveProbeStatus(true, true) === "operational", "both ok");
 assert(resolveProbeStatus(false, false) === "major_outage", "both down");
 assert(resolveProbeStatus(true, false) === "degraded_performance", "api down");

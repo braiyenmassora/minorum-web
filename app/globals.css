@@ -4,39 +4,83 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Minorum design tokens — dark is the product default; light via html:not(.dark) */
+/*
+  Minorum design tokens — dark is the product default; light via html:not(.dark).
+
+  Source palette uses --minorum-* (never --color-*). Tailwind @theme owns
+  --color-* for utilities (bg-background, text-text-primary, …). Mapping
+  --color-background → var(--color-background) or via --background that
+  points back at --color-background creates a circular var() and colors
+  fail to resolve in the browser.
+*/
 :root {
-  --color-background: #000000;
-  --color-surface: #1a2226;
-  --color-surface-raised: #111b21;
+  --minorum-bg: #0f0f0f;
+  --minorum-surface: #171717;
+  --minorum-surface-raised: #262626;
 
-  --color-assistant-bubble: #242626;
-  --color-user-bubble: #144d37;
-  --color-composer: var(--color-assistant-bubble);
-  --color-border: #1a2226;
-  --color-border-subtle: #141a1d;
+  --minorum-assistant-bubble: #1a1a1a;
+  --minorum-user-bubble: #171717;
+  --minorum-composer: var(--minorum-assistant-bubble);
+  --minorum-border: #262626;
+  --minorum-border-subtle: #1f1f1f;
 
-  --color-text-primary: #e9edef;
-  --color-text-secondary: #8696a0;
-  --color-text-muted: #8696a0;
-  --color-text-on-accent: #ffffff;
-  --color-text-on-user: #ffffff;
+  --minorum-text-primary: #ffffff;
+  --minorum-text-secondary: #a3a3a3;
+  --minorum-text-muted: #737373;
+  --minorum-text-on-accent: #0f0f0f;
+  --minorum-text-on-user: #ffffff;
 
-  --color-accent-primary: #00a884;
-  --color-focus-ring: #53bdeb;
+  --minorum-accent: #e5e5e5;
+  --minorum-focus-ring: #a3a3a3;
 
-  --color-success: #00a884;
-  --color-warning: #f5a623;
-  --color-error: #ff4d4f;
+  --minorum-success: #4ade80;
+  --minorum-warning: #f5a623;
+  --minorum-severe: #fa8c16;
+  --minorum-error: #ff4d4f;
+  --minorum-info: #4b9fff;
 
-  --color-disabled-bg: #141a1d;
-  --color-disabled-text: #8696a0;
+  --minorum-inline-code-bg: #0d0d0d;
+  --minorum-inline-code-text: #ffffff;
 
-  --color-splash: rgba(255, 255, 255, 0.06);
-  --color-highlight: rgba(255, 255, 255, 0.06);
-  --color-focus-overlay: rgba(0, 168, 132, 0.12);
-  --color-pressed-overlay: rgba(255, 255, 255, 0.1);
-  --color-hover-overlay: rgba(255, 255, 255, 0.05);
+  --minorum-disabled-bg: #1f1f1f;
+  --minorum-disabled-text: #737373;
+
+  --minorum-splash: rgba(255, 255, 255, 0.06);
+  --minorum-highlight: rgba(255, 255, 255, 0.06);
+  --minorum-focus-overlay: rgba(255, 255, 255, 0.08);
+  --minorum-pressed-overlay: rgba(255, 255, 255, 0.1);
+  --minorum-hover-overlay: rgba(255, 255, 255, 0.05);
+
+  /* Back-compat aliases used by raw CSS (body, markdown, buttons). */
+  --color-background: var(--minorum-bg);
+  --color-surface: var(--minorum-surface);
+  --color-surface-raised: var(--minorum-surface-raised);
+  --color-assistant-bubble: var(--minorum-assistant-bubble);
+  --color-user-bubble: var(--minorum-user-bubble);
+  --color-composer: var(--minorum-composer);
+  --color-border: var(--minorum-border);
+  --color-border-subtle: var(--minorum-border-subtle);
+  --color-text-primary: var(--minorum-text-primary);
+  --color-text-secondary: var(--minorum-text-secondary);
+  --color-text-muted: var(--minorum-text-muted);
+  --color-text-on-accent: var(--minorum-text-on-accent);
+  --color-text-on-user: var(--minorum-text-on-user);
+  --color-accent-primary: var(--minorum-accent);
+  --color-focus-ring: var(--minorum-focus-ring);
+  --color-success: var(--minorum-success);
+  --color-warning: var(--minorum-warning);
+  --color-severe: var(--minorum-severe);
+  --color-error: var(--minorum-error);
+  --color-info: var(--minorum-info);
+  --color-inline-code-bg: var(--minorum-inline-code-bg);
+  --color-inline-code-text: var(--minorum-inline-code-text);
+  --color-disabled-bg: var(--minorum-disabled-bg);
+  --color-disabled-text: var(--minorum-disabled-text);
+  --color-splash: var(--minorum-splash);
+  --color-highlight: var(--minorum-highlight);
+  --color-focus-overlay: var(--minorum-focus-overlay);
+  --color-pressed-overlay: var(--minorum-pressed-overlay);
+  --color-hover-overlay: var(--minorum-hover-overlay);
 
   --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", monospace;
@@ -100,7 +144,8 @@
   --field-padding-x: 12px;
   --content-inset: 12px;
   --user-bubble-max-width: 82%;
-  --chat-image-preview: 64px;
+  --chat-attachment-preview: 64px;
+  --chat-image-preview: var(--chat-attachment-preview);
   --chat-image-bubble: 136px;
   --sheet-drag-handle-height: 24px;
   --chat-max-width: 860px;
@@ -123,65 +168,70 @@
     --chat-markdown-line-height: 1.6;
   }
 
-  --shadow-floating: 0 2px 12px rgba(0, 0, 0, 0.6);
-  --shadow-modal: 0 4px 24px rgba(0, 0, 0, 0.7);
+  --minorum-shadow-floating: 0 2px 12px rgba(0, 0, 0, 0.6);
+  --minorum-shadow-modal: 0 4px 24px rgba(0, 0, 0, 0.7);
+  --shadow-floating: var(--minorum-shadow-floating);
+  --shadow-modal: var(--minorum-shadow-modal);
 
-  /* shadcn/ui aliases — map ke Minorum tokens */
-  --background: var(--color-background);
-  --foreground: var(--color-text-primary);
-  --card: var(--color-surface);
-  --card-foreground: var(--color-text-primary);
-  --popover: var(--color-surface-raised);
-  --popover-foreground: var(--color-text-primary);
-  --primary: var(--color-accent-primary);
-  --primary-foreground: var(--color-text-on-accent);
-  --secondary: var(--color-surface-raised);
-  --secondary-foreground: var(--color-text-primary);
-  --muted: var(--color-surface);
-  --muted-foreground: var(--color-text-muted);
-  --accent: var(--color-surface-raised);
-  --accent-foreground: var(--color-text-primary);
-  --destructive: var(--color-error);
-  --border: var(--color-border);
-  --input: var(--color-border-subtle);
-  --ring: var(--color-focus-ring);
+  /* shadcn/ui aliases — map ke Minorum source tokens */
+  --background: var(--minorum-bg);
+  --foreground: var(--minorum-text-primary);
+  --card: var(--minorum-surface);
+  --card-foreground: var(--minorum-text-primary);
+  --popover: var(--minorum-surface-raised);
+  --popover-foreground: var(--minorum-text-primary);
+  --primary: var(--minorum-accent);
+  --primary-foreground: var(--minorum-text-on-accent);
+  --secondary: var(--minorum-surface-raised);
+  --secondary-foreground: var(--minorum-text-primary);
+  --muted: var(--minorum-surface);
+  --muted-foreground: var(--minorum-text-muted);
+  --accent: var(--minorum-surface-raised);
+  --accent-foreground: var(--minorum-text-primary);
+  --destructive: var(--minorum-error);
+  --border: var(--minorum-border);
+  --input: var(--minorum-border-subtle);
+  --ring: var(--minorum-focus-ring);
   --radius: var(--radius-standard);
-  --chart-1: var(--color-text-secondary);
-  --chart-2: var(--color-text-muted);
-  --chart-3: var(--color-border);
-  --chart-4: var(--color-surface-raised);
-  --chart-5: var(--color-surface);
-  --sidebar: var(--color-surface);
-  --sidebar-foreground: var(--color-text-primary);
-  --sidebar-primary: var(--color-accent-primary);
-  --sidebar-primary-foreground: var(--color-text-on-accent);
-  --sidebar-accent: var(--color-surface-raised);
-  --sidebar-accent-foreground: var(--color-text-primary);
-  --sidebar-border: var(--color-border);
-  --sidebar-ring: var(--color-focus-ring);
+  --chart-1: var(--minorum-text-secondary);
+  --chart-2: var(--minorum-text-muted);
+  --chart-3: var(--minorum-border);
+  --chart-4: var(--minorum-surface-raised);
+  --chart-5: var(--minorum-surface);
+  --sidebar: var(--minorum-surface);
+  --sidebar-foreground: var(--minorum-text-primary);
+  --sidebar-primary: var(--minorum-accent);
+  --sidebar-primary-foreground: var(--minorum-text-on-accent);
+  --sidebar-accent: var(--minorum-surface-raised);
+  --sidebar-accent-foreground: var(--minorum-text-primary);
+  --sidebar-border: var(--minorum-border);
+  --sidebar-ring: var(--minorum-focus-ring);
 }
 
 @theme inline {
-  --color-background: var(--color-background);
-  --color-foreground: var(--color-text-primary);
-  --color-surface: var(--color-surface);
-  --color-surface-raised: var(--color-surface-raised);
-  --color-border: var(--color-border);
-  --color-border-subtle: var(--color-border-subtle);
-  --color-text-primary: var(--color-text-primary);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-text-muted: var(--color-text-muted);
-  --color-text-on-accent: var(--color-text-on-accent);
-  --color-text-on-user: var(--color-text-on-user);
-  --color-accent-primary: var(--color-accent-primary);
-  --color-user-bubble: var(--color-user-bubble);
-  --color-assistant-bubble: var(--color-assistant-bubble);
-  --color-focus-ring: var(--color-focus-ring);
-  --color-success: var(--color-success);
-  --color-warning: var(--color-warning);
-  --color-error: var(--color-error);
-  --color-disabled-bg: var(--color-disabled-bg);
-  --color-disabled-text: var(--color-disabled-text);
+  /* Utilities (bg-background, text-text-primary, …) → source palette only. */
+  --color-background: var(--minorum-bg);
+  --color-foreground: var(--minorum-text-primary);
+  --color-surface: var(--minorum-surface);
+  --color-surface-raised: var(--minorum-surface-raised);
+  --color-border: var(--minorum-border);
+  --color-border-subtle: var(--minorum-border-subtle);
+  --color-text-primary: var(--minorum-text-primary);
+  --color-text-secondary: var(--minorum-text-secondary);
+  --color-text-muted: var(--minorum-text-muted);
+  --color-text-on-accent: var(--minorum-text-on-accent);
+  --color-text-on-user: var(--minorum-text-on-user);
+  --color-accent-primary: var(--minorum-accent);
+  --color-user-bubble: var(--minorum-user-bubble);
+  --color-assistant-bubble: var(--minorum-assistant-bubble);
+  --color-focus-ring: var(--minorum-focus-ring);
+  --color-success: var(--minorum-success);
+  --color-warning: var(--minorum-warning);
+  --color-severe: var(--minorum-severe);
+  --color-error: var(--minorum-error);
+  --color-info: var(--minorum-info);
+  --color-disabled-bg: var(--minorum-disabled-bg);
+  --color-disabled-text: var(--minorum-disabled-text);
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -199,24 +249,25 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-  --font-display: var(--font-display);
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", monospace;
+  --font-display:
+    var(--font-funnel-display), var(--font-geist-sans), system-ui, sans-serif;
 
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
+  --radius-sm: 7px;
+  --radius-md: 9px;
   --radius-lg: var(--radius-standard);
   --radius-xl: calc(var(--radius-standard) + 2px);
 
-  --shadow-floating: var(--shadow-floating);
-  --shadow-modal: var(--shadow-modal);
+  --shadow-floating: var(--minorum-shadow-floating);
+  --shadow-modal: var(--minorum-shadow-modal);
 
-  --spacing-xs: var(--spacing-xs);
-  --spacing-sm: var(--spacing-sm);
-  --spacing-md: var(--spacing-md);
-  --spacing-lg: var(--spacing-lg);
-  --spacing-xl: var(--spacing-xl);
-  --spacing-xxl: var(--spacing-xxl);
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -250,50 +301,57 @@ body {
   font-size: var(--text-body-large-size);
   font-weight: var(--text-body-large-weight);
   line-height: var(--text-body-large-line-height);
-  color: var(--color-text-primary);
-  background-color: var(--color-background);
+  color: var(--minorum-text-primary);
+  background-color: var(--minorum-bg);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
   touch-action: manipulation;
 }
 
-/* Light mode — only when .dark is removed */
+/* Light mode — only when .dark is removed. Override source palette. */
 html:not(.dark) {
-  --color-background: #f0f2f5;
-  --color-surface: #ffffff;
-  --color-surface-raised: #e9edef;
+  --minorum-bg: #f5f5f5;
+  --minorum-surface: #ffffff;
+  --minorum-surface-raised: #ebebeb;
 
-  --color-assistant-bubble: #ffffff;
-  --color-user-bubble: #144d37;
-  --color-composer: var(--color-assistant-bubble);
-  --color-border: #d1d7db;
-  --color-border-subtle: #e9edef;
+  --minorum-assistant-bubble: #ffffff;
+  --minorum-user-bubble: #171717;
+  --minorum-composer: var(--minorum-assistant-bubble);
+  --minorum-border: #e5e5e5;
+  --minorum-border-subtle: #ebebeb;
 
-  --color-text-primary: #111b21;
-  --color-text-secondary: #667781;
-  --color-text-muted: #8696a0;
-  --color-text-on-accent: #ffffff;
-  --color-text-on-user: #ffffff;
+  --minorum-text-primary: #0f0f0f;
+  --minorum-text-secondary: #525252;
+  --minorum-text-muted: #737373;
+  --minorum-text-on-accent: #ffffff;
+  --minorum-text-on-user: #ffffff;
 
-  --color-accent-primary: #00a884;
-  --color-focus-ring: #53bdeb;
+  --minorum-accent: #171717;
+  --minorum-focus-ring: #525252;
 
-  --color-success: #00a884;
-  --color-warning: #f5a623;
-  --color-error: #ea4335;
+  --minorum-success: #16a34a;
+  --minorum-warning: #d98200;
+  --minorum-severe: #e06d00;
+  --minorum-error: #ea4335;
+  --minorum-info: #1f6feb;
 
-  --color-disabled-bg: #141a1d;
-  --color-disabled-text: #8696a0;
+  --minorum-inline-code-bg: #ececec;
+  --minorum-inline-code-text: #171717;
 
-  --color-splash: rgba(17, 27, 33, 0.06);
-  --color-highlight: rgba(17, 27, 33, 0.06);
-  --color-focus-overlay: rgba(0, 168, 132, 0.12);
-  --color-pressed-overlay: rgba(17, 27, 33, 0.08);
-  --color-hover-overlay: rgba(17, 27, 33, 0.04);
+  --minorum-disabled-bg: #e0e0e0;
+  --minorum-disabled-text: #6b6b6b;
 
-  --shadow-floating: 0 2px 12px rgba(17, 27, 33, 0.12);
-  --shadow-modal: 0 4px 24px rgba(17, 27, 33, 0.18);
+  --minorum-splash: rgba(15, 15, 15, 0.06);
+  --minorum-highlight: rgba(15, 15, 15, 0.06);
+  --minorum-focus-overlay: rgba(23, 23, 23, 0.12);
+  --minorum-pressed-overlay: rgba(15, 15, 15, 0.08);
+  --minorum-hover-overlay: rgba(15, 15, 15, 0.04);
+
+  --minorum-shadow-floating: 0 2px 12px rgba(15, 15, 15, 0.12);
+  --minorum-shadow-modal: 0 4px 24px rgba(15, 15, 15, 0.18);
+  --shadow-floating: var(--minorum-shadow-floating);
+  --shadow-modal: var(--minorum-shadow-modal);
 }
 
 @layer base {
@@ -305,6 +363,17 @@ html:not(.dark) {
   }
   html {
     @apply font-sans;
+  }
+
+  /* Consistent keyboard focus ring for every custom interactive element.
+     Mouse clicks don't trigger :focus-visible, so this stays keyboard-only. */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
   }
 
   /* Chrome autofill forces a white fill — keep fields on dark bubble. */
@@ -354,6 +423,10 @@ html:not(.dark) {
 }
 
 .composer-textarea {
+  /* Cap growth so a long draft scrolls internally instead of shoving
+     the message history off-screen on mobile. JS sets inline height;
+     max-height clamps the rendered box and enables internal scroll. */
+  max-height: var(--composer-max-height, 40dvh);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -373,7 +446,8 @@ html:not(.dark) {
   width: 6px;
   height: 6px;
   border-radius: 9999px;
-  background-color: #000000;
+  background-color: var(--color-text-primary);
+  opacity: 0.35;
   animation-name: typing-wave;
   animation-duration: 1.4s;
   animation-timing-function: ease-in-out;
@@ -381,7 +455,7 @@ html:not(.dark) {
 }
 
 .dark .typing-indicator-dot {
-  background-color: #ffffff;
+  opacity: 0.55;
 }
 
 .typing-indicator-dot:nth-child(1) {
@@ -499,6 +573,7 @@ html:not(.dark) {
 
 .chat-markdown th,
 .chat-markdown td {
+  /* Follows the same theme-aware divider token as the sidebar. */
   border-bottom: 1px solid var(--color-border-subtle);
   padding: 0.55rem 0.7rem;
   text-align: left;
@@ -517,11 +592,12 @@ html:not(.dark) {
 
 .chat-markdown-inline-code {
   border-radius: var(--radius-sm);
-  background: #0d0d0d;
+  /* Adaptive: readable chip in both themes. Fenced blocks stay dark. */
+  background: var(--color-inline-code-bg);
   padding: 0.12em 0.4em;
   font-family: var(--font-mono);
   font-size: 0.9em;
-  color: #ffffff;
+  color: var(--color-inline-code-text);
 }
 
 .chat-markdown .verminal-code {
@@ -552,7 +628,7 @@ html:not(.dark) {
     -webkit-overflow-scrolling: touch;
   }
 
-  .verminal-code pre {
+  .verminal-code__pre {
     font-size: 13px;
     -webkit-overflow-scrolling: touch;
   }
@@ -710,6 +786,17 @@ html:not(.dark) {
     opacity: 0.5;
   }
 
+  /* Shared keyboard focus ring for custom (non-input) interactive elements. */
+  .focus-ring {
+    outline: none;
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
   .btn-outline {
     display: inline-flex;
     height: var(--field-min-height);
@@ -728,7 +815,7 @@ html:not(.dark) {
   }
 
   .btn-outline:hover {
-    background-color: rgb(255 255 255 / 0.05);
+    background-color: var(--color-hover-overlay);
     color: var(--color-text-primary);
   }
 
@@ -743,10 +830,10 @@ html:not(.dark) {
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-sm);
-    background-color: var(--color-user-bubble);
+    background-color: var(--color-accent-primary);
     font-size: var(--text-body-medium-size);
     line-height: var(--text-body-medium-line-height);
-    color: #ffffff;
+    color: var(--color-text-on-accent);
     transition: opacity 150ms;
   }
 
@@ -789,5 +876,23 @@ html:not(.dark) {
 
   .chip-btn:hover {
     background-color: var(--color-hover-overlay);
+  }
+}
+
+/* Respect users who ask for less motion: kill decorative animation,
+   keep essential state changes near-instant instead of fully removed. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .typing-indicator-dot {
+    animation: none !important;
+    opacity: 0.6;
   }
 }

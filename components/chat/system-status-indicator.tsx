@@ -3,7 +3,7 @@
 import { getAppCopy } from "@/lib/core/copy/app-copy";
 import {
   getStatusDefinition,
-  type StatusColor,
+  type StatusTone,
   type SystemStatus,
 } from "@/lib/services/system-status-service";
 import { cn } from "@/lib/utils";
@@ -13,20 +13,22 @@ type SystemStatusIndicatorProps = {
   className?: string;
 };
 
-const DOT_BY_COLOR: Record<StatusColor, string> = {
-  green: "bg-[var(--color-success)] opacity-80",
-  yellow: "bg-[var(--color-warning)]",
-  orange: "bg-[#fa8c16]",
-  red: "bg-[var(--color-error)]",
-  blue: "bg-[var(--color-focus-ring)]",
+const DOT_BY_TONE: Record<StatusTone, string> = {
+  neutral: "bg-text-muted",
+  success: "bg-[var(--color-success)]",
+  warning: "bg-[var(--color-warning)]",
+  severe: "bg-[var(--color-severe)]",
+  danger: "bg-[var(--color-error)]",
+  info: "bg-[var(--color-info)]",
 };
 
-const TEXT_BY_COLOR: Record<StatusColor, string> = {
-  green: "text-text-muted",
-  yellow: "text-[var(--color-warning)]",
-  orange: "font-medium text-[#fa8c16]",
-  red: "font-medium text-error",
-  blue: "text-[var(--color-focus-ring)]",
+const TEXT_BY_TONE: Record<StatusTone, string> = {
+  neutral: "text-text-muted",
+  success: "text-[var(--color-success)]",
+  warning: "text-[var(--color-warning)]",
+  severe: "font-medium text-[var(--color-severe)]",
+  danger: "font-medium text-error",
+  info: "text-[var(--color-info)]",
 };
 
 export function SystemStatusIndicator({
@@ -66,14 +68,14 @@ export function SystemStatusIndicator({
       <span
         className={cn(
           "size-1.5 shrink-0 rounded-full",
-          DOT_BY_COLOR[definition.color],
+          DOT_BY_TONE[definition.tone],
         )}
         aria-hidden
       />
       <span
         className={cn(
           "truncate text-[12px] leading-[1.35]",
-          TEXT_BY_COLOR[definition.color],
+          TEXT_BY_TONE[definition.tone],
         )}
       >
         {definition.label}

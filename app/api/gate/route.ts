@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { pickDefaultModel } from "@/lib/core/config/model-label";
+import { readWebToolsConfigFromEnv } from "@/lib/core/config/web-tools-config";
 
 const GATE_COOKIE = "minorum_gate";
 const GATE_COOKIE_VALUE = "1";
@@ -27,6 +28,13 @@ function readApiDefaults(): {
   const apiKey = process.env.MINORUM_DEFAULT_API_KEY?.trim() ?? "";
   const preferredModel = process.env.MINORUM_DEFAULT_MODEL?.trim() ?? "";
   if (!apiBaseUrl || !apiKey) {
+    console.error(
+      "[gate] Server API config missing — set MINORUM_DEFAULT_API_URL and MINORUM_DEFAULT_API_KEY in .env, then restart the server.",
+      {
+        hasUrl: Boolean(apiBaseUrl),
+        hasKey: Boolean(apiKey),
+      },
+    );
     return null;
   }
   try {
@@ -57,6 +65,8 @@ async function testApiConnection(
       },
       cache: "no-store",
       redirect: "error",
+      // Don't let a hung upstream stall the login request forever.
+      signal: AbortSignal.timeout(15_000),
     });
   } catch {
     return { ok: false, status: 502, message: "Connection failed" };
@@ -132,6 +142,7 @@ export async function GET(request: NextRequest) {
       apiKey: defaults.apiKey,
       preferredModel: defaults.preferredModel,
     },
+    webTools: readWebToolsConfigFromEnv(),
   });
 }
 
@@ -179,6 +190,7 @@ export async function POST(request: Request) {
       apiKey: defaults.apiKey,
       modelName,
     },
+    webTools: readWebToolsConfigFromEnv(),
   });
   response.cookies.set(GATE_COOKIE, GATE_COOKIE_VALUE, {
     httpOnly: true,
