@@ -1,4 +1,5 @@
 import {
+  comboEntriesOnly,
   getModelDisplayName,
   getProviderCategory,
   groupModelsForPicker,
@@ -68,5 +69,20 @@ const grouped = groupModelsForPicker([
 assert(grouped[0]?.category === "Combo", "combo group first");
 assert(grouped[0]?.models[0]?.id === "DealWithSign", "combo listed");
 assert(grouped.length === 3, "three groups");
+
+const onlyCombos = comboEntriesOnly([
+  { id: "best", ownedBy: "combo" },
+  { id: "coding", ownedBy: "combo" },
+  { id: "openai/gpt-5", ownedBy: "openai" },
+  { id: "auto/best-chat" },
+]);
+assert(
+  onlyCombos.map((e) => e.id).join(",") === "best,coding,auto/best-chat",
+  "comboEntriesOnly keeps owned_by=combo and auto/*",
+);
+assert(
+  groupModelsForPicker(onlyCombos).length === 1,
+  "filtered picker is one Combo group",
+);
 
 console.log("model-label checks passed");

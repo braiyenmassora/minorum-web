@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { AppConfig } from "@/lib/core/config/app-config";
 import {
+  comboEntriesOnly,
   getModelDisplayName,
   groupModelsForPicker,
   type ModelEntry,
@@ -63,7 +64,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
       try {
         const entries = await fetchModelEntries(config, controller.signal);
         if (!cancelled) {
-          setGroups(groupModelsForPicker(entries));
+          setGroups(groupModelsForPicker(comboEntriesOnly(entries)));
           setErrorMessage(null);
         }
       } catch (error) {
@@ -160,9 +161,6 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
       >
         {filtered.map((group) => (
           <div key={group.category} className="flex flex-col gap-1">
-            <p className="px-2 pt-1 text-token-body-medium font-bold text-text-primary">
-              {group.category}
-            </p>
             {group.models.map((entry: ModelEntry) => {
               const isActive = entry.id === config.modelName;
               return (

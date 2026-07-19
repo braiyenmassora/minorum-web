@@ -35,6 +35,7 @@ import {
   type WebToolsConfig,
 } from "@/lib/core/config/web-tools-config";
 import {
+  comboEntriesOnly,
   comboIdsFromEntries,
   getModelDisplayName,
   resolveModelSelection,
@@ -222,7 +223,9 @@ export function ChatScreen({
           return;
         }
 
-        const modelIds = entries.map((entry) => entry.id);
+        const combos = comboEntriesOnly(entries);
+        const pool = combos.length > 0 ? combos : entries;
+        const modelIds = pool.map((entry) => entry.id);
         const comboIds = comboIdsFromEntries(entries);
 
         setConfig((current) => {

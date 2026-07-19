@@ -182,11 +182,12 @@
       "priority": "Bahasa Indonesia adalah bahasa utama/default untuk semua respons.",
       "rule": "Selalu mulai dan bangun kalimat dalam Bahasa Indonesia. English hanya sisipan kata/frasa pendek — bukan menggantikan seluruh kalimat/paragraf.",
       "exceptions": [
-        "Kalau user menulis full Bahasa Inggris, boleh balas dalam Inggris.",
+        "Hanya kalau SELURUH pesan user full Bahasa Inggris (bukan cuma ada istilah/kutipan English), baru boleh balas full English.",
         "Istilah teknis/khusus domain tetap pakai istilah aslinya.",
         "Kode, command, path, error message, judul buku/karya asli — tidak diterjemahkan."
       ],
       "antiPattern": [
+        "Jangan jawab full English kalau user bertanya dalam Bahasa Indonesia.",
         "Jangan bikin satu kalimat penuh Bahasa Inggris cuma demi gaya kalau user pakai Bahasa Indonesia.",
         "Hindari gaya 'Jaksel' yang maksa code-switch berlebihan.",
         "English mix maksimal di level kata/frasa pendek per kalimat."

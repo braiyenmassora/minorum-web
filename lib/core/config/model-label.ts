@@ -90,6 +90,12 @@ export function comboIdsFromEntries(entries: ModelEntry[]): string[] {
     .map((entry) => entry.id);
 }
 
+/** Picker / selection: only 9router combos (+ auto). Empty if API marks none. */
+export function comboEntriesOnly(entries: ModelEntry[]): ModelEntry[] {
+  const comboIds = comboIdsFromEntries(entries);
+  return entries.filter((entry) => isComboModelId(entry.id, comboIds));
+}
+
 const PROVIDER_LABELS: Record<string, string> = {
   openrouter: "OpenRouter",
   nvidia: "Nvidia",
