@@ -60,7 +60,7 @@ export function AppToastHost() {
         visible ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0",
       )}
     >
-      <div className="pointer-events-auto max-w-md rounded-token border border-border-subtle bg-surface-raised px-[var(--spacing-lg)] py-[var(--spacing-md)] text-token-body-medium text-text-primary shadow-floating">
+      <div className="pointer-events-auto w-max min-w-[12rem] max-w-[min(calc(100vw-2rem),28rem)] shrink-0 rounded-token border border-border-subtle bg-surface-raised px-[var(--spacing-lg)] py-[var(--spacing-md)] text-center text-token-body-medium leading-snug whitespace-normal text-text-primary shadow-floating">
         {message}
       </div>
     </div>,

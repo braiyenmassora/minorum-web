@@ -204,6 +204,11 @@ export function isTextDocument(fileName: string, mimeType = ""): boolean {
   return false;
 }
 
+/** Only PDFs are forwarded as vision payloads; office binaries stay metadata-only. */
+export function isPdfDocument(fileName: string): boolean {
+  return fileExtension(fileName) === "pdf";
+}
+
 export async function prepareDocumentAttachment(
   file: File,
 ): Promise<PreparedDocument> {

@@ -82,6 +82,7 @@
     "test_connection_required": "Test the connection before continuing",
     "unsupported_file": "Unsupported file type",
     "file_too_large": "File too large (max 8MB)",
+    "payload_too_large": "Request too large — try a smaller file",
     "not_an_image": "Not an image file",
     "wrong_password": "Wrong password",
     "connection_failed": "Connection failed",

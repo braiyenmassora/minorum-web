@@ -6,6 +6,7 @@ import type {
 } from "@/lib/models/message";
 import {
   decodeDataUrlText,
+  isPdfDocument,
   isTextDocument,
 } from "@/lib/services/document-attachment-service";
 
@@ -75,7 +76,11 @@ export function getMessageFiles(
     .map((part) => part.file_url);
 }
 
-/** API: text docs → text part; PDF/binary → image_url data URL. */
+function binaryDocumentApiText(fileName: string): string {
+  return `File attached: ${fileName}\n\n(Binary document — contents are not sent to the model. Use PDF, CSV, or plain text for analysis.)`;
+}
+
+/** API: text docs → inline text; PDF → image_url; other binaries → metadata text only. */
 export function toApiMessageContent(
   content: MessageContent,
 ): string | Array<TextPart | ImagePart> {
@@ -100,9 +105,16 @@ export function toApiMessageContent(
       });
       continue;
     }
+    if (isPdfDocument(part.file_url.name)) {
+      parts.push({
+        type: "image_url",
+        image_url: { url: part.file_url.url },
+      });
+      continue;
+    }
     parts.push({
-      type: "image_url",
-      image_url: { url: part.file_url.url },
+      type: "text",
+      text: binaryDocumentApiText(part.file_url.name),
     });
   }
 

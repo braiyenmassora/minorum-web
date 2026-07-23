@@ -2,6 +2,7 @@ import {
   prepareDocumentAttachment,
   isTextDocument,
   isAcceptedDocumentFile,
+  isPdfDocument,
   decodeDataUrlText,
 } from "./document-attachment-service";
 import { toApiMessageContent } from "@/lib/models/message-content";
