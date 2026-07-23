@@ -79,6 +79,12 @@
     "unknown": "Something went wrong",
     "config_incomplete": "Complete URL, key, and model first",
     "profile_required": "Enter your full name first",
-    "test_connection_required": "Test the connection before continuing"
+    "test_connection_required": "Test the connection before continuing",
+    "unsupported_file": "Unsupported file type",
+    "file_too_large": "File too large (max 8MB)",
+    "not_an_image": "Not an image file",
+    "wrong_password": "Wrong password",
+    "connection_failed": "Connection failed",
+    "api_config_missing": "Server API config missing"
   }
 }

@@ -103,14 +103,40 @@
     }
     button:hover { opacity: 0.9; }
     button:disabled { opacity: 0.5; cursor: default; }
-    .error {
-      font-size: 13px;
-      color: #ff4d4f;
-      min-height: 1.25rem;
+    .toast-host {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      padding: max(0.75rem, env(safe-area-inset-top, 0px)) 1rem 0;
+      pointer-events: none;
+    }
+    .toast {
+      max-width: 28rem;
+      border: 1px solid #1f1f1f;
+      border-radius: 10px;
+      background: #171717;
+      color: #ffffff;
+      font-size: 14px;
+      line-height: 1.45;
+      padding: 12px 16px;
+      box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+      opacity: 0;
+      transform: translateY(-0.5rem);
+      transition: opacity 200ms, transform 200ms;
+      pointer-events: auto;
+    }
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateY(0);
     }
   </style>
 </head>
 <body>
+  <div class="toast-host" aria-live="assertive">
+    <div class="toast" id="toast" role="alert" hidden></div>
+  </div>
   <main>
     <img src="/logo.jpeg" alt="Minorum" width="56" height="56" />
     <div class="copy">
@@ -136,10 +162,19 @@
         autocomplete="current-password"
       />
       <button type="submit" id="login" disabled>Login</button>
-      <p class="error" id="error" aria-live="polite"></p>
     </form>
   </main>
   <script>
+    const TOAST = {
+      profile_required: "Enter your full name first",
+      wrong_password: "Wrong password",
+      connection_failed: "Connection failed",
+      api_config_missing: "Server API config missing",
+      timeout: "Request timed out",
+      network: "Connection lost",
+      unknown: "Something went wrong",
+    };
+
     const STORAGE = {
       apiBaseUrl: "api_base_url",
       apiKey: "api_key",
@@ -150,8 +185,29 @@
     const form = document.getElementById("gate");
     const fullName = document.getElementById("full-name");
     const password = document.getElementById("password");
-    const error = document.getElementById("error");
+    const toast = document.getElementById("toast");
     const button = document.getElementById("login");
+    let toastTimer = null;
+
+    function showToast(message) {
+      const text = String(message || "").trim();
+      if (!text) {
+        return;
+      }
+      toast.textContent = text;
+      toast.hidden = false;
+      toast.classList.add("is-visible");
+      if (toastTimer !== null) {
+        window.clearTimeout(toastTimer);
+      }
+      toastTimer = window.setTimeout(() => {
+        toast.classList.remove("is-visible");
+        window.setTimeout(() => {
+          toast.hidden = true;
+          toast.textContent = "";
+        }, 200);
+      }, 4000);
+    }
 
     function syncLoginEnabled() {
       button.disabled = password.value.trim().length === 0;
@@ -166,13 +222,12 @@
       if (password.value.trim().length === 0) {
         return;
       }
-      error.textContent = "";
       button.disabled = true;
       const loginLabel = button.textContent;
       try {
         const name = fullName.value.trim();
         if (!name) {
-          error.textContent = "Your Name required";
+          showToast(TOAST.profile_required);
           return;
         }
 
@@ -185,13 +240,14 @@
         });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok || payload.ok !== true) {
-          error.textContent =
+          const message =
             typeof payload.message === "string"
               ? payload.message
               : response.status === 401
-                ? "Wrong password"
-                : "Connection failed";
-          if (error.textContent === "Wrong password") {
+                ? TOAST.wrong_password
+                : TOAST.connection_failed;
+          showToast(message);
+          if (message === TOAST.wrong_password) {
             password.select();
           }
           return;
@@ -199,7 +255,7 @@
 
         const config = payload.config || {};
         if (!config.apiBaseUrl || !config.apiKey) {
-          error.textContent = "Server API config missing";
+          showToast(TOAST.api_config_missing);
           return;
         }
 
@@ -213,12 +269,13 @@
 
         window.location.href = "/";
       } catch (err) {
-        error.textContent =
+        showToast(
           err && err.name === "TimeoutError"
-            ? "Connection timed out"
-            : err instanceof Error
+            ? TOAST.timeout
+            : err instanceof Error && err.message
               ? err.message
-              : "Network error";
+              : TOAST.network,
+        );
       } finally {
         button.textContent = loginLabel;
         syncLoginEnabled();

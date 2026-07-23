@@ -27,7 +27,6 @@ import {
 import { ModelPickerPanel } from "@/components/chat/model-picker-panel";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { AppLogo } from "@/components/ui/app-logo";
-import { showAppToast } from "@/components/ui/app-toast";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
 import type { AppConfig } from "@/lib/core/config/app-config";
@@ -41,7 +40,11 @@ import {
   getModelDisplayName,
   resolveModelSelection,
 } from "@/lib/core/config/model-label";
-import { toastMessageForApiError } from "@/lib/core/copy/api-error-message";
+import {
+  showApiErrorToast,
+  showAttachmentErrorToast,
+  showErrorToast,
+} from "@/lib/core/copy/api-error-message";
 import { getAppCopy } from "@/lib/core/copy/app-copy";
 import type { ChatSession } from "@/lib/models/chat-session";
 import type { Message } from "@/lib/models/message";
@@ -57,9 +60,10 @@ import {
   listChatSessions,
   upsertChatSession,
 } from "@/lib/services/chat-history-storage-service";
-import { prepareImageAttachment } from "@/lib/services/image-attachment-service";
+import { prepareImageAttachment, isImageAttachmentFile } from "@/lib/services/image-attachment-service";
 import {
   DOCUMENT_FILE_ACCEPT,
+  isAcceptedDocumentFile,
   prepareDocumentAttachment,
 } from "@/lib/services/document-attachment-service";
 import { fetchModelEntries, streamChat } from "@/lib/services/chat-service";
@@ -115,6 +119,7 @@ export function ChatScreen({
     useState<PendingDocument | null>(null);
   const [attachingImage, setAttachingImage] = useState(false);
   const [attachingDocument, setAttachingDocument] = useState(false);
+  const [composerDragOver, setComposerDragOver] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [emptySubtitle, setEmptySubtitle] = useState(
@@ -138,6 +143,19 @@ export function ChatScreen({
 
   const refreshSessions = useCallback(() => {
     setSessions(listChatSessions());
+  }, []);
+
+  useEffect(() => {
+    function preventBrowserFileDrop(event: DragEvent) {
+      event.preventDefault();
+    }
+
+    window.addEventListener("dragover", preventBrowserFileDrop);
+    window.addEventListener("drop", preventBrowserFileDrop);
+    return () => {
+      window.removeEventListener("dragover", preventBrowserFileDrop);
+      window.removeEventListener("drop", preventBrowserFileDrop);
+    };
   }, []);
 
   useEffect(() => {
@@ -479,10 +497,7 @@ export function ChatScreen({
 
         const apiError = toChatApiError(error);
         if (apiError.kind !== "cancelled") {
-          const toast = toastMessageForApiError(apiError.kind);
-          if (toast) {
-            showAppToast(toast);
-          }
+          showApiErrorToast(apiError.kind);
         }
 
         setMessages((current) => {
@@ -582,14 +597,11 @@ export function ChatScreen({
     [streaming, streamFromHistory, config.modelName],
   );
 
-  async function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || streaming || attaching) {
+  const attachImageFile = useCallback(async (file: File) => {
+    if (streaming || attachingImage || attachingDocument) {
       return;
     }
 
-    // Guard against session switches while the file is being processed.
     const epoch = sessionEpochRef.current;
     setAttachingImage(true);
 
@@ -600,21 +612,17 @@ export function ChatScreen({
       }
       setPendingImage(prepared.dataUrl);
       setModelPickerOpen(false);
-    } catch {
+    } catch (error) {
       if (sessionEpochRef.current === epoch) {
-        showAppToast("Something went wrong");
+        showAttachmentErrorToast(error);
       }
     } finally {
       setAttachingImage(false);
     }
-  }
+  }, [streaming, attachingImage, attachingDocument]);
 
-  async function handleDocumentSelect(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || streaming || attaching) {
+  const attachDocumentFile = useCallback(async (file: File) => {
+    if (streaming || attachingImage || attachingDocument) {
       return;
     }
 
@@ -631,14 +639,108 @@ export function ChatScreen({
         fileName: prepared.fileName,
       });
       setModelPickerOpen(false);
-    } catch {
+    } catch (error) {
       if (sessionEpochRef.current === epoch) {
-        showAppToast("Something went wrong");
+        showAttachmentErrorToast(error);
       }
     } finally {
       setAttachingDocument(false);
     }
+  }, [streaming, attachingImage, attachingDocument]);
+
+  async function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+    routeDroppedFile(file);
   }
+
+  async function handleDocumentSelect(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+    routeDroppedFile(file);
+  }
+
+  const routeDroppedFile = useCallback(
+    (file: File) => {
+      if (isImageAttachmentFile(file)) {
+        void attachImageFile(file);
+        return;
+      }
+      if (isAcceptedDocumentFile(file)) {
+        void attachDocumentFile(file);
+        return;
+      }
+      showErrorToast("unsupported_file");
+    },
+    [attachImageFile, attachDocumentFile],
+  );
+
+  const handleFileDragEnter = useCallback(
+    (event: React.DragEvent<HTMLElement>) => {
+      if (composerLocked || attaching) {
+        return;
+      }
+      if (!event.dataTransfer.types.includes("Files")) {
+        return;
+      }
+      event.preventDefault();
+      setComposerDragOver(true);
+    },
+    [composerLocked, attaching],
+  );
+
+  const handleFileDragOver = useCallback(
+    (event: React.DragEvent<HTMLElement>) => {
+      if (composerLocked || attaching) {
+        return;
+      }
+      if (!event.dataTransfer.types.includes("Files")) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+    },
+    [composerLocked, attaching],
+  );
+
+  const handleFileDragLeave = useCallback(
+    (event: React.DragEvent<HTMLElement>) => {
+      const related = event.relatedTarget;
+      if (related instanceof Node && event.currentTarget.contains(related)) {
+        return;
+      }
+      setComposerDragOver(false);
+    },
+    [],
+  );
+
+  const handleFileDrop = useCallback(
+    (event: React.DragEvent<HTMLElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setComposerDragOver(false);
+
+      if (composerLocked || attaching) {
+        return;
+      }
+
+      const file = event.dataTransfer.files?.[0];
+      if (!file) {
+        return;
+      }
+
+      routeDroppedFile(file);
+    },
+    [composerLocked, attaching, routeDroppedFile],
+  );
 
   function handleNewChat() {
     startNewSession();
@@ -756,6 +858,10 @@ export function ChatScreen({
         className="flex min-w-0 flex-1 flex-col"
         aria-busy={streaming}
         aria-label={copy.chat_history_sidebar.title}
+        onDragEnter={handleFileDragEnter}
+        onDragLeave={handleFileDragLeave}
+        onDragOverCapture={handleFileDragOver}
+        onDropCapture={handleFileDrop}
       >
         <header className="flex shrink-0 items-center gap-1.5 border-b border-border-subtle pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-2 pl-[max(var(--content-inset),env(safe-area-inset-left,0px))] pr-[max(var(--content-inset),env(safe-area-inset-right,0px))] md:hidden">
           <button
@@ -840,7 +946,14 @@ export function ChatScreen({
               </div>
             ) : null}
 
-            <div className="overflow-hidden rounded-token border border-border-subtle bg-assistant-bubble shadow-floating">
+            <div
+              className={cn(
+                "overflow-hidden rounded-token border bg-assistant-bubble shadow-floating transition-colors",
+                composerDragOver
+                  ? "border-accent-primary ring-2 ring-accent-primary/25"
+                  : "border-border-subtle",
+              )}
+            >
               <div className="flex items-center justify-between gap-inline px-composer py-composer">
                 <button
                   type="button"

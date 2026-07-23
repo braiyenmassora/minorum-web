@@ -11,11 +11,10 @@ import {
   type ModelEntry,
   type ModelPickerGroup,
 } from "@/lib/core/config/model-label";
-import { toastMessageForApiError } from "@/lib/core/copy/api-error-message";
+import { showApiErrorToast } from "@/lib/core/copy/api-error-message";
 import { getAppCopy } from "@/lib/core/copy/app-copy";
 import { toChatApiError } from "@/lib/services/chat-api-error";
 import { fetchModelEntries } from "@/lib/services/chat-service";
-import { showAppToast } from "@/components/ui/app-toast";
 import { cn } from "@/lib/utils";
 
 type ModelPickerPanelProps = {
@@ -72,10 +71,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
         const apiError = toChatApiError(error);
         // Aborting on unmount/reload isn't a user-facing failure.
         if (!cancelled && apiError.kind !== "cancelled") {
-          const toast = toastMessageForApiError(apiError.kind);
-          if (toast) {
-            showAppToast(toast);
-          }
+          showApiErrorToast(apiError.kind);
           setLoadFailed(true);
           setGroups([]);
         }

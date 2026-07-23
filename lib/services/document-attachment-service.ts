@@ -1,14 +1,32 @@
-/** Allowed document uploads (.pdf binary → image_url; text → inlined for API). */
+/** Document uploads — text inlined for API; other binaries sent as data URLs. */
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 
-const BINARY_EXTENSIONS = new Set(["pdf"]);
+/** Never attach as documents (use image flow or block). */
+const BLOCKED_EXTENSIONS = new Set([
+  "exe",
+  "dll",
+  "msi",
+  "bat",
+  "cmd",
+  "com",
+  "scr",
+  "vbs",
+  "jar",
+  "app",
+  "deb",
+  "rpm",
+  "apk",
+  "dmg",
+  "iso",
+]);
 
 const TEXT_EXTENSIONS = new Set([
   "txt",
   "md",
   "markdown",
   "csv",
+  "tsv",
   "log",
   "json",
   "jsonc",
@@ -50,14 +68,26 @@ const TEXT_EXTENSIONS = new Set([
   "lua",
   "pl",
   "proto",
+  "rtf",
 ]);
 
 const MIME_BY_EXT: Record<string, string> = {
   pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ppt: "application/vnd.ms-powerpoint",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  odt: "application/vnd.oasis.opendocument.text",
+  ods: "application/vnd.oasis.opendocument.spreadsheet",
+  odp: "application/vnd.oasis.opendocument.presentation",
+  rtf: "application/rtf",
   txt: "text/plain",
   md: "text/markdown",
   markdown: "text/markdown",
   csv: "text/csv",
+  tsv: "text/tab-separated-values",
   log: "text/plain",
   json: "application/json",
   jsonc: "application/json",
@@ -101,11 +131,22 @@ const MIME_BY_EXT: Record<string, string> = {
   proto: "text/x-protobuf",
 };
 
-const ALLOWED_EXTENSIONS = new Set([...BINARY_EXTENSIONS, ...TEXT_EXTENSIONS]);
+const DOCUMENT_EXTENSION_HINTS = [
+  ...TEXT_EXTENSIONS,
+  ...Object.keys(MIME_BY_EXT).filter((ext) => !TEXT_EXTENSIONS.has(ext)),
+].map((ext) => `.${ext}`);
 
+/** File picker hints — any non-image file still allowed when extension is missing but MIME is set. */
 export const DOCUMENT_FILE_ACCEPT = [
-  ...[...ALLOWED_EXTENSIONS].map((ext) => `.${ext}`),
+  ...DOCUMENT_EXTENSION_HINTS,
   "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/csv",
   "text/plain",
 ].join(",");
 
@@ -120,29 +161,61 @@ export function fileExtension(fileName: string): string {
   return i >= 0 ? fileName.slice(i + 1).toLowerCase() : "";
 }
 
-export function isTextDocument(fileName: string, mimeType = ""): boolean {
-  const ext = fileExtension(fileName);
-  if (BINARY_EXTENSIONS.has(ext)) {
+function isBlockedDocument(file: File): boolean {
+  const ext = fileExtension(file.name);
+  return Boolean(ext && BLOCKED_EXTENSIONS.has(ext));
+}
+
+function looksLikeDocumentMime(mimeType: string): boolean {
+  if (!mimeType || mimeType.startsWith("image/")) {
     return false;
   }
+  return (
+    mimeType.startsWith("text/") ||
+    mimeType.startsWith("application/") ||
+    mimeType === "message/rfc822"
+  );
+}
+
+export function isAcceptedDocumentFile(file: File): boolean {
+  if (file.type.startsWith("image/")) {
+    return false;
+  }
+  if (isBlockedDocument(file)) {
+    return false;
+  }
+
+  const ext = fileExtension(file.name);
+  if (ext) {
+    return true;
+  }
+
+  return looksLikeDocumentMime(file.type);
+}
+
+export function isTextDocument(fileName: string, mimeType = ""): boolean {
+  const ext = fileExtension(fileName);
   if (TEXT_EXTENSIONS.has(ext)) {
     return true;
   }
-  return mimeType.startsWith("text/") || mimeType === "application/json";
+  if (mimeType.startsWith("text/") || mimeType === "application/json") {
+    return true;
+  }
+  return false;
 }
 
 export async function prepareDocumentAttachment(
   file: File,
 ): Promise<PreparedDocument> {
-  const ext = fileExtension(file.name);
-  if (!ALLOWED_EXTENSIONS.has(ext)) {
-    throw new Error("Format file tidak didukung");
+  if (!isAcceptedDocumentFile(file)) {
+    throw new Error("Unsupported file type");
   }
 
   if (file.size > MAX_FILE_BYTES) {
-    throw new Error("File terlalu besar (max 8MB)");
+    throw new Error("File too large (max 8MB)");
   }
 
+  const ext = fileExtension(file.name);
   const mimeType = file.type || MIME_BY_EXT[ext] || "application/octet-stream";
 
   if (isTextDocument(file.name, mimeType)) {

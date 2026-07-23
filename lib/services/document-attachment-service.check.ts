@@ -1,6 +1,7 @@
 import {
   prepareDocumentAttachment,
   isTextDocument,
+  isAcceptedDocumentFile,
   decodeDataUrlText,
 } from "./document-attachment-service";
 import { toApiMessageContent } from "@/lib/models/message-content";
@@ -15,6 +16,7 @@ async function main(): Promise<void> {
   const bad = new File(["hi"], "notes.exe", {
     type: "application/octet-stream",
   });
+  assert(!isAcceptedDocumentFile(bad), "rejects exe");
   let rejected = false;
   try {
     await prepareDocumentAttachment(bad);
@@ -33,6 +35,17 @@ async function main(): Promise<void> {
     "pdf data url",
   );
   assert(!isTextDocument(preparedPdf.fileName), "pdf not text");
+
+  const xlsx = new File([new Uint8Array([0x50, 0x4b, 0x03, 0x04])], "sheet.xlsx", {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  assert(isAcceptedDocumentFile(xlsx), "accepts xlsx");
+  const preparedXlsx = await prepareDocumentAttachment(xlsx);
+  assert(
+    preparedXlsx.dataUrl.includes("spreadsheetml"),
+    "xlsx mime in data url",
+  );
+  assert(!isTextDocument(preparedXlsx.fileName), "xlsx not text");
 
   const py = new File(["print(1)\n"], "main.py", { type: "text/x-python" });
   const preparedPy = await prepareDocumentAttachment(py);

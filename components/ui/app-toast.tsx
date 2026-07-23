@@ -3,25 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { publishToast, subscribeToast } from "@/lib/toast-bus";
 import { cn } from "@/lib/utils";
 
-type ToastListener = (message: string) => void;
-
-const listeners = new Set<ToastListener>();
-
 export function showAppToast(message: string) {
-  const trimmed = message.trim();
-  if (!trimmed) {
-    return;
-  }
-  for (const listener of listeners) {
-    listener(trimmed);
-  }
+  publishToast(message);
 }
 
 export function AppToastHost() {
   const [message, setMessage] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const timerRef = useRef<number | null>(null);
 
   const dismiss = useCallback(() => {
@@ -30,7 +22,11 @@ export function AppToastHost() {
   }, []);
 
   useEffect(() => {
-    const listener: ToastListener = (msg) => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const listener = (msg: string) => {
       setMessage(msg);
       setVisible(true);
       if (timerRef.current !== null) {
@@ -39,16 +35,19 @@ export function AppToastHost() {
       timerRef.current = window.setTimeout(dismiss, 4000);
     };
 
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
+    return subscribeToast(listener);
+  }, [dismiss]);
+
+  useEffect(
+    () => () => {
       if (timerRef.current !== null) {
         window.clearTimeout(timerRef.current);
       }
-    };
-  }, [dismiss]);
+    },
+    [],
+  );
 
-  if (!message) {
+  if (!mounted || !message) {
     return null;
   }
 
@@ -57,7 +56,7 @@ export function AppToastHost() {
       role="alert"
       aria-live="assertive"
       className={cn(
-        "pointer-events-none fixed inset-x-0 top-0 z-[100] flex justify-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] transition-all duration-200",
+        "pointer-events-none fixed inset-x-0 top-0 z-[200] flex justify-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))] transition-all duration-200",
         visible ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0",
       )}
     >
