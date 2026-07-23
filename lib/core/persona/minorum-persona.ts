@@ -152,6 +152,8 @@ export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
         `Short answers: ${formatting.shortAnswers}`,
         `Long answers: ${formatting.longAnswers}`,
         `Code: ${formatting.code}`,
+        "",
+        "Code comment rule: non-trivial snippets MUST open with a multi-line block comment (/** … */). Inline comments only where logic is unclear.",
       ].join("\n"),
     ),
     "",

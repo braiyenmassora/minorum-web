@@ -16,10 +16,21 @@ assert(
     {
       id: "1",
       role: "user",
-      content: "Halo dunia yang panjang sekali sekali sekali sekali sekali",
+      content: "gimana cara scala baca data dengan spark streaming",
     },
-  ]).endsWith("…"),
-  "title truncates",
+  ]) === "gimana cara scala baca data…",
+  "title caps at five words",
+);
+
+assert(
+  titleFromMessages([
+    {
+      id: "2",
+      role: "user",
+      content: "how does this work",
+    },
+  ]) === "how does this work",
+  "short title unchanged",
 );
 
 assert(titleFromMessages([]) === "New chat", "empty session title");

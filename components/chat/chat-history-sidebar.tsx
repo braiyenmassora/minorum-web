@@ -108,7 +108,8 @@ export function ChatHistorySidebar({
                   <button
                     type="button"
                     className={cn(
-                      "w-full rounded-token-sm px-sidebar py-sidebar-item pr-9 text-left text-token-body-medium transition-colors",
+                      "w-full rounded-token-sm px-sidebar py-sidebar-item text-left text-token-body-medium transition-colors",
+                      "pr-[calc(var(--spacing-sm)+var(--icon-button-size))] md:pr-[calc(var(--spacing-sm)+var(--control-height-xs))]",
                       isActive
                         ? "bg-surface-raised text-text-primary"
                         : "text-text-secondary hover:bg-surface-raised/60 hover:text-text-primary",
@@ -116,11 +117,11 @@ export function ChatHistorySidebar({
                     aria-current={isActive ? "true" : undefined}
                     onClick={() => onSelect(session.id)}
                   >
-                    <span className="line-clamp-2">{session.title}</span>
+                    <span className="line-clamp-2 break-words">{session.title}</span>
                   </button>
                   <button
                     type="button"
-                    className="icon-btn-responsive absolute top-1/2 right-[var(--spacing-xs)] inline-flex -translate-y-1/2 items-center justify-center rounded-token-sm text-text-muted opacity-70 transition-opacity hover:bg-surface-raised hover:text-error focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                    className="icon-btn-responsive absolute top-1/2 right-[var(--spacing-sm)] inline-flex -translate-y-1/2 items-center justify-center rounded-token-sm text-text-muted opacity-70 transition-opacity hover:bg-surface-raised hover:text-error focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     onClick={(event) => {
                       event.stopPropagation();
                       onDelete(session.id);

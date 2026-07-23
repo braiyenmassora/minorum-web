@@ -1,4 +1,4 @@
-/* Code block — Cursor / One Dark Pro palette (pure black canvas) */
+/* Code block — Cursor / VS Code Dark+ style (pure black canvas) */
 
 .verminal-code {
   color-scheme: dark;
@@ -6,8 +6,8 @@
 
 .verminal-code__shell {
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-code-block);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-standard);
   background: #000000;
 }
 
@@ -75,15 +75,15 @@
   -moz-osx-font-smoothing: auto;
 }
 
-/* Comment */
+/* Comment — muted gray */
 .verminal-code .hljs-comment,
 .verminal-code .hljs-quote {
-  color: #6a9955;
+  color: #6e7681;
   font-style: italic;
   font-weight: 400;
 }
 
-/* Keyword — import, const, return, if, throw, … */
+/* Keyword — function, const, return, … */
 .verminal-code .hljs-keyword,
 .verminal-code .hljs-selector-tag,
 .verminal-code .hljs-literal {
@@ -91,22 +91,27 @@
   font-weight: 600;
 }
 
-/* String */
+/* String — green */
 .verminal-code .hljs-string,
-.verminal-code .hljs-regexp,
+.verminal-code .hljs-regexp {
+  color: #6a9955;
+  font-weight: 500;
+}
+
+/* Template literal — green shell, gold interpolation */
 .verminal-code .hljs-template-variable,
 .verminal-code .hljs-template-tag {
-  color: #ce9178;
+  color: #dcdcaa;
   font-weight: 500;
 }
 
-/* Number */
+/* Number — pink/salmon */
 .verminal-code .hljs-number {
-  color: #b5cea8;
+  color: #f07178;
   font-weight: 500;
 }
 
-/* Function / method */
+/* Function name */
 .verminal-code .hljs-title,
 .verminal-code .hljs-title.function_,
 .verminal-code .hljs-section {
@@ -127,15 +132,15 @@
 .verminal-code .hljs-property,
 .verminal-code .hljs-attr,
 .verminal-code .hljs-attribute {
-  color: #9cdcfe;
+  color: #e0e0e0;
   font-weight: 500;
 }
 
-/* Built-in / constructor */
+/* Built-in globals — window, document, … */
 .verminal-code .hljs-built_in,
 .verminal-code .hljs-title.class_ {
-  color: #4ec9b0;
-  font-weight: 600;
+  color: #f07178;
+  font-weight: 500;
 }
 
 /* Tags / names */
@@ -152,11 +157,7 @@
 }
 
 /* Operators & punctuation */
-.verminal-code .hljs-operator {
-  color: #d4d4d4;
-  font-weight: 500;
-}
-
+.verminal-code .hljs-operator,
 .verminal-code .hljs-punctuation {
   color: #d4d4d4;
   font-weight: 500;
