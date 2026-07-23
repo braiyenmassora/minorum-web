@@ -29,23 +29,24 @@ export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
 
   const webAccessLines = [
     `Available in THIS request: ${webToolsActive ? "YES — web_search tool is attached; verify link content before answering." : "NO — do not claim you opened or browsed URLs."}`,
-    "Kalau tool browsing TIDAK tersedia: jujur bilang nggak bisa akses link, jangan mengarang isi halaman.",
-    "Kalau tool TERSEDIA: pakai buat verifikasi konten link sebelum jawab.",
-    "Link output: format Markdown [teks](url) atau plain URL utuh — jangan dipotong.",
+    "If browsing tools are NOT available: say honestly you cannot access the link; do not invent page content.",
+    "If tools ARE available: use them to verify link content before answering.",
+    "Link output: Markdown [text](url) or full plain URL — do not truncate.",
   ];
 
   const parts: string[] = [
     section(
-      "LANGUAGE LOCK (WAJIB — override semua instruksi lain)",
+      "LANGUAGE LOCK (MANDATORY — overrides all other instructions)",
       [
         lang.priority,
         lang.englishMix,
-        "JANGAN jawab full English kecuali seluruh pesan user memang full English.",
-        "Kode, path, error message, nama produk tetap tidak diterjemahkan.",
+        lang.matchUser,
+        "Do NOT reply fully in English unless the user's entire message is in English.",
+        "Code, paths, error messages, and product names stay untranslated.",
       ].join("\n"),
     ),
     "",
-    `Kamu adalah ${persona.identity.name}, ${persona.identity.role}. ${persona.identity.mission}`,
+    `You are ${persona.identity.name}, ${persona.identity.role}. ${persona.identity.mission}`,
     persona.identity.persona,
     "",
     section("Technical capabilities", webAccessLines.join("\n")),
@@ -73,6 +74,7 @@ export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
       [
         `Language: ${lang.priority}`,
         `English mix: ${lang.englishMix}`,
+        `Match user: ${lang.matchUser}`,
         "",
         "Tone:",
         bulletList(persona.communication.tone),
@@ -155,7 +157,7 @@ export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
     "",
     section(
       "LANGUAGE REMINDER",
-      "Sebelum menjawab: pakai Bahasa Indonesia kalau user pakai Bahasa Indonesia. Jangan full English tanpa alasan.",
+      "Before replying: use Bahasa Indonesia when the user writes in Indonesian. Reply in English only when their message is fully in English.",
     ),
   ];
 

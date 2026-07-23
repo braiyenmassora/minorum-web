@@ -1,27 +1,27 @@
 {
   "app_meta": {
     "app_name": "Minorum",
-    "tagline": "Teman ngobrol yang hangat & sedikit blak-blakan"
+    "tagline": "A warm chat companion — honest and a little blunt"
   },
   "setup_screen": {
     "title": "Minorum",
-    "subtitle": "Teman ngobrol yang hangat & sedikit blak-blakan",
-    "connection_section": "Koneksi API",
-    "profile_section": "Profil",
+    "subtitle": "A warm chat companion — honest and a little blunt",
+    "connection_section": "API connection",
+    "profile_section": "Profile",
     "full_name_label": "Full name",
-    "full_name_hint": "Nama lengkap",
+    "full_name_hint": "Your full name",
     "api_url_label": "API URL",
     "api_url_hint": "https://api.example.com",
     "api_key_label": "API Key",
     "api_key_hint": "sk-...",
     "model_label": "Model",
     "model_hint": "Select or type a model name",
-    "test_connection": "Tes koneksi",
-    "test_connection_success": "Koneksi oke!",
-    "save": "Mulai chat",
-    "show_api_key": "Tampilkan",
-    "hide_api_key": "Sembunyikan",
-    "cancel": "Batal"
+    "test_connection": "Test connection",
+    "test_connection_success": "Connection OK!",
+    "save": "Start chat",
+    "show_api_key": "Show",
+    "hide_api_key": "Hide",
+    "cancel": "Cancel"
   },
   "chat_screen_input_header": {
     "model_prefix": "Model:",
@@ -35,14 +35,14 @@
     "title": "Minorum",
     "new_chat": "New chat",
     "clear_all": "Clear all chats",
-    "clear_all_confirm_body": "Semua chat bakal dihapus permanen. Config API tetap aman.",
-    "clear_all_confirm": "Hapus semua",
-    "clear_all_cancel": "Batal",
+    "clear_all_confirm_body": "All chats will be permanently deleted. Your API config stays intact.",
+    "clear_all_confirm": "Delete all",
+    "clear_all_cancel": "Cancel",
     "empty": "No chats yet",
     "delete": "Delete",
     "close": "Close",
-    "account": "Profil",
-    "manage_setup": "Ubah setup"
+    "account": "Profile",
+    "manage_setup": "Edit setup"
   },
   "system_status": {
     "checking": "Checking…"
@@ -50,14 +50,14 @@
   "chat_bubble": {
     "read_more": "Read more",
     "show_less": "Show less",
-    "copy": "Salin",
+    "copy": "Copy",
     "retry": "Retry"
   },
   "chat_screen_reset_bottom_sheet": {
     "title": "Reset chat?",
-    "body": "Semua pesan di sesi ini bakal hilang. Config API tetap aman.",
+    "body": "All messages in this session will be cleared. Your API config stays intact.",
     "confirm": "Reset",
-    "cancel": "Batal"
+    "cancel": "Cancel"
   },
   "pilih_model_bottom_sheet": {
     "title": "Select model",
@@ -67,18 +67,18 @@
     "close": "Close"
   },
   "upload_gambar_bottom_sheet": {
-    "title": "Lampirkan gambar",
-    "from_gallery": "Dari galeri",
-    "cancel": "Batal"
+    "title": "Attach image",
+    "from_gallery": "From gallery",
+    "cancel": "Cancel"
   },
   "error_and_snackbar_messages": {
-    "auth": "API key/URL salah",
-    "network": "Koneksi putus",
-    "server": "Server rewel",
-    "timeout": "Kelamaan nunggu",
-    "unknown": "Ada yang salah",
-    "config_incomplete": "Lengkapi dulu URL, key, dan model",
-    "profile_required": "Isi full name dulu",
-    "test_connection_required": "Tes koneksi dulu sebelum lanjut"
+    "auth": "Invalid API key or URL",
+    "network": "Connection lost",
+    "server": "Server's acting up",
+    "timeout": "Request timed out",
+    "unknown": "Something went wrong",
+    "config_incomplete": "Complete URL, key, and model first",
+    "profile_required": "Enter your full name first",
+    "test_connection_required": "Test the connection before continuing"
   }
 }

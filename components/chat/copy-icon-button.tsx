@@ -14,7 +14,7 @@ type CopyIconButtonProps = {
 export function CopyIconButton({
   text,
   className,
-  label = "Salin",
+  label = "Copy",
 }: CopyIconButtonProps) {
   const [copied, setCopied] = useState(false);
 

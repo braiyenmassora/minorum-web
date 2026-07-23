@@ -34,7 +34,7 @@ async function testApiConnection(
   }
 
   if (upstream.status === 401 || upstream.status === 403) {
-    return { ok: false, status: 401, message: "API key/URL salah" };
+    return { ok: false, status: 401, message: "Invalid API key or URL" };
   }
 
   if (!upstream.ok) {
@@ -45,7 +45,7 @@ async function testApiConnection(
   try {
     body = await upstream.json();
   } catch {
-    return { ok: false, status: 502, message: "API key/URL salah" };
+    return { ok: false, status: 502, message: "Invalid API key or URL" };
   }
 
   if (
@@ -53,7 +53,7 @@ async function testApiConnection(
     body === null ||
     !Array.isArray((body as { data?: unknown }).data)
   ) {
-    return { ok: false, status: 502, message: "API key/URL salah" };
+    return { ok: false, status: 502, message: "Invalid API key or URL" };
   }
 
   const rows = (body as { data: Array<{ id?: string; owned_by?: string }> })

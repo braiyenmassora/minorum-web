@@ -66,7 +66,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
           <span className="verminal-code__lang">{languageLabel}</span>
           <CopyIconButton
             text={code}
-            label="Salin kode"
+            label="Copy code"
             className="verminal-code__copy"
           />
         </div>
