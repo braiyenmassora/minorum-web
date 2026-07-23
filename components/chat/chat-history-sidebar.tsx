@@ -45,22 +45,22 @@ export function ChatHistorySidebar({
   return (
     <aside
       className={cn(
-        "relative flex h-full min-h-0 w-[280px] shrink-0 flex-col self-stretch bg-background after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-px after:bg-border-subtle",
+        "relative flex h-full min-h-0 w-sidebar shrink-0 flex-col self-stretch bg-background after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-px after:bg-border-subtle",
         className,
       )}
       aria-label={copy.title}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-border-subtle px-composer py-composer">
-        <div className="flex min-w-0 items-center gap-2">
+      <div className="flex items-center justify-between gap-inline border-b border-border-subtle px-composer py-composer">
+        <div className="flex min-w-0 items-center gap-inline">
           <AppLogo size={24} className="shrink-0 rounded-full" priority />
-          <h2 className="font-display truncate text-token-body font-extrabold tracking-tight text-text-primary">
+          <h2 className="font-geist truncate text-token-body text-text-primary">
             {copy.title}
           </h2>
         </div>
-        <div className="flex shrink-0 items-center gap-0.5">
+        <div className="flex shrink-0 items-center gap-inline-2xs">
           <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-error disabled:opacity-40 md:size-7"
+            className="icon-btn-responsive inline-flex items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-error disabled:opacity-40"
             onClick={() => setConfirmingClearAll(true)}
             disabled={sessions.length === 0}
             aria-label={copy.clear_all}
@@ -70,7 +70,7 @@ export function ChatHistorySidebar({
           </button>
           <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary md:size-7"
+            className="icon-btn-responsive inline-flex items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
             onClick={onNewChat}
             aria-label={copy.new_chat}
             title={copy.new_chat}
@@ -93,13 +93,13 @@ export function ChatHistorySidebar({
         }}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-sidebar py-sidebar-scroll">
         {sessions.length === 0 ? (
-          <p className="px-2 py-4 text-center text-token-body-medium text-text-muted">
+          <p className="px-sidebar py-[var(--spacing-lg)] text-center text-token-body-medium text-text-muted">
             {copy.empty}
           </p>
         ) : (
-          <ul className="flex flex-col gap-0.5">
+          <ul className="flex flex-col gap-inline-xs">
             {sessions.map((session) => {
               const isActive = session.id === activeSessionId;
 
@@ -108,7 +108,7 @@ export function ChatHistorySidebar({
                   <button
                     type="button"
                     className={cn(
-                      "w-full rounded-token-sm px-2 py-2 pr-9 text-left text-token-body-medium transition-colors",
+                      "w-full rounded-token-sm px-sidebar py-sidebar-item pr-9 text-left text-token-body-medium transition-colors",
                       isActive
                         ? "bg-surface-raised text-text-primary"
                         : "text-text-secondary hover:bg-surface-raised/60 hover:text-text-primary",
@@ -120,7 +120,7 @@ export function ChatHistorySidebar({
                   </button>
                   <button
                     type="button"
-                    className="absolute top-1/2 right-1 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-token-sm text-text-muted opacity-70 transition-opacity hover:bg-surface-raised hover:text-error focus-visible:opacity-100 md:size-7 md:opacity-0 md:group-hover:opacity-100"
+                    className="icon-btn-responsive absolute top-1/2 right-[var(--spacing-xs)] inline-flex -translate-y-1/2 items-center justify-center rounded-token-sm text-text-muted opacity-70 transition-opacity hover:bg-surface-raised hover:text-error focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     onClick={(event) => {
                       event.stopPropagation();
                       onDelete(session.id);
@@ -136,20 +136,20 @@ export function ChatHistorySidebar({
         )}
       </div>
 
-      <div className="border-t border-border-subtle p-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]">
-        <div className="flex items-center gap-1 rounded-token-sm px-2 py-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+      <div className="border-t border-border-subtle p-sidebar-footer pb-[max(var(--spacing-sm),env(safe-area-inset-bottom,0px))]">
+        <div className="flex items-center gap-inline-xs rounded-token-sm px-sidebar py-sidebar-item">
+          <div className="flex min-w-0 flex-1 items-center gap-stack-md">
             <Image
               src="/me.jpeg"
               alt={displayName}
               width={32}
               height={32}
-              className="size-8 shrink-0 rounded-full object-cover"
+              className="size-avatar-sm shrink-0 rounded-full object-cover"
               priority
               unoptimized
             />
             <span className="min-w-0 flex-1">
-              <span className="font-display block truncate text-token-body font-extrabold tracking-tight text-text-primary">
+              <span className="font-geist block truncate text-token-body text-text-primary">
                 {displayName}
               </span>
               <SystemStatusIndicator status={systemStatus} className="mt-0.5" />
@@ -157,7 +157,7 @@ export function ChatHistorySidebar({
           </div>
           <button
             type="button"
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-error md:size-7"
+            className="icon-btn-responsive inline-flex shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-error"
             onClick={onLogout}
             aria-label="Logout"
             title="Logout"

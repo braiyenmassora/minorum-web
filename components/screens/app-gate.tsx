@@ -128,7 +128,7 @@ export function AppGate() {
         aria-busy="true"
       >
         <Loader2
-          className="size-8 animate-spin text-text-secondary"
+          className="size-control-compact animate-spin text-text-secondary"
           aria-hidden
         />
         <span className="sr-only">Loading</span>

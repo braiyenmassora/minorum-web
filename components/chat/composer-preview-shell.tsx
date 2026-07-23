@@ -18,7 +18,7 @@ export function ComposerPreviewShell({
       {children}
       <button
         type="button"
-        className="absolute -top-1.5 -right-1.5 inline-flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition-opacity hover:opacity-90"
+        className="absolute -top-1.5 -right-1.5 inline-flex size-control-xs items-center justify-center rounded-full bg-black/60 text-white transition-opacity hover:opacity-90"
         onClick={onRemove}
         aria-label={removeLabel}
       >

@@ -94,19 +94,13 @@ function playViaBrowser(messageId: string, text: string): void {
 async function playViaRouter(
   messageId: string,
   text: string,
-  apiBaseUrl: string,
-  apiKey: string,
 ): Promise<void> {
   const controller = new AbortController();
   fetchAbort = controller;
 
   const response = await fetch("/api/proxy/audio/speech", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "X-Minorum-Api-Base": apiBaseUrl,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ model: DEFAULT_TTS_MODEL, input: text }),
     signal: controller.signal,
   });
@@ -170,7 +164,7 @@ export async function toggleMessageSpeech(
   }
 
   try {
-    await playViaRouter(messageId, spoken, config.apiBaseUrl, config.apiKey);
+    await playViaRouter(messageId, spoken);
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       return;

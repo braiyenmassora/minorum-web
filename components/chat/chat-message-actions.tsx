@@ -28,7 +28,7 @@ export function ChatMessageActions({
   const isPlaying = activeMessageId === messageId;
 
   return (
-    <div className="mt-3 flex items-center gap-1.5">
+    <div className="mt-3 flex items-center gap-stack-sm">
       <CopyIconButton text={text} label="Copy message" />
       <button
         type="button"
@@ -38,7 +38,7 @@ export function ChatMessageActions({
         aria-label={isPlaying ? "Stop reading message" : "Read message aloud"}
         aria-pressed={isPlaying}
         className={cn(
-          "inline-flex size-7 items-center justify-center rounded-token-sm transition-colors",
+          "inline-flex size-control-xs items-center justify-center rounded-token-sm transition-colors",
           isPlaying
             ? "bg-surface-raised text-text-primary"
             : "text-text-muted hover:bg-surface-raised hover:text-text-primary",

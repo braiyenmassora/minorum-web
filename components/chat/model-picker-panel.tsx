@@ -11,10 +11,11 @@ import {
   type ModelEntry,
   type ModelPickerGroup,
 } from "@/lib/core/config/model-label";
-import { messageForApiError } from "@/lib/core/copy/api-error-message";
+import { toastMessageForApiError } from "@/lib/core/copy/api-error-message";
 import { getAppCopy } from "@/lib/core/copy/app-copy";
 import { toChatApiError } from "@/lib/services/chat-api-error";
 import { fetchModelEntries } from "@/lib/services/chat-service";
+import { showAppToast } from "@/components/ui/app-toast";
 import { cn } from "@/lib/utils";
 
 type ModelPickerPanelProps = {
@@ -52,7 +53,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
   const [groups, setGroups] = useState<ModelPickerGroup[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -65,13 +66,17 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
         const entries = await fetchModelEntries(config, controller.signal);
         if (!cancelled) {
           setGroups(groupModelsForPicker(comboEntriesOnly(entries)));
-          setErrorMessage(null);
+          setLoadFailed(false);
         }
       } catch (error) {
         const apiError = toChatApiError(error);
         // Aborting on unmount/reload isn't a user-facing failure.
         if (!cancelled && apiError.kind !== "cancelled") {
-          setErrorMessage(messageForApiError(apiError.kind));
+          const toast = toastMessageForApiError(apiError.kind);
+          if (toast) {
+            showAppToast(toast);
+          }
+          setLoadFailed(true);
           setGroups([]);
         }
       } finally {
@@ -91,10 +96,10 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
 
   // Focus search as soon as the list is ready so keyboard users can filter.
   useEffect(() => {
-    if (!loading && !errorMessage) {
+    if (!loading && !loadFailed) {
       searchRef.current?.focus();
     }
-  }, [loading, errorMessage]);
+  }, [loading, loadFailed]);
 
   const filtered = useMemo(() => filterGroups(groups, query), [groups, query]);
   const totalModels = filtered.reduce(
@@ -107,7 +112,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
       id="model-picker-panel"
       className="flex min-h-0 flex-col border-b border-border-subtle px-composer py-composer"
     >
-      {!loading && !errorMessage && groups.length > 0 ? (
+      {!loading && !loadFailed && groups.length > 0 ? (
         <input
           ref={searchRef}
           type="search"
@@ -116,7 +121,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
           placeholder={copy.search_hint}
           aria-label={copy.search_hint}
           aria-controls="model-picker-listbox"
-          className="mb-2 h-10 w-full min-w-0 shrink-0 rounded-token-sm border border-border-subtle bg-background px-2.5 text-base text-text-primary outline-none placeholder:text-text-muted focus-visible:border-sidebar-border md:h-8 md:text-token-body-medium"
+          className="mb-2 min-h-[var(--field-min-height)] w-full min-w-0 shrink-0 rounded-token-sm border border-border-subtle bg-background px-[var(--field-padding-x)] text-token-body text-text-primary outline-none placeholder:text-text-muted focus-visible:border-sidebar-border md:min-h-[var(--control-height-compact)] md:text-token-body-medium"
         />
       ) : null}
 
@@ -124,20 +129,22 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
         <p
           role="status"
           aria-live="polite"
-          className="px-1 py-1.5 text-token-body-medium text-text-secondary"
+          className="px-[var(--spacing-xs)] py-[calc(var(--spacing-xs)+2px)] text-token-body-medium text-text-secondary"
         >
           {copy.loading}
         </p>
       ) : null}
 
-      {errorMessage ? (
-        <div role="alert" className="flex items-center gap-2 px-1 py-1.5">
-          <p className="text-token-body-medium text-error">{errorMessage}</p>
+      {loadFailed ? (
+        <div role="alert" className="flex items-center gap-inline px-[var(--spacing-xs)] py-[calc(var(--spacing-xs)+2px)]">
+          <p className="text-token-body-medium text-text-secondary">
+            Couldn&apos;t load models.
+          </p>
           <button
             type="button"
-            className="focus-ring shrink-0 rounded-token-sm border border-border-subtle px-2 py-0.5 text-token-label text-text-secondary transition-colors hover:bg-surface-raised hover:text-text-primary"
+            className="focus-ring shrink-0 rounded-token-sm border border-border-subtle px-sidebar py-[calc(var(--spacing-xs)/2)] text-token-label text-text-secondary transition-colors hover:bg-surface-raised hover:text-text-primary"
             onClick={() => {
-              setErrorMessage(null);
+              setLoadFailed(false);
               setLoading(true);
               setReloadKey((key) => key + 1);
             }}
@@ -147,8 +154,8 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
         </div>
       ) : null}
 
-      {!loading && !errorMessage && totalModels === 0 ? (
-        <p className="px-1 py-1.5 text-token-body-medium text-text-secondary">
+      {!loading && !loadFailed && totalModels === 0 ? (
+        <p className="px-[var(--spacing-xs)] py-[calc(var(--spacing-xs)+2px)] text-token-body-medium text-text-secondary">
           {copy.empty}
         </p>
       ) : null}
@@ -157,7 +164,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
         id="model-picker-listbox"
         role="listbox"
         aria-label={copy.title}
-        className="flex max-h-[min(40dvh,14rem)] flex-col gap-2 overflow-y-auto overscroll-contain md:max-h-56"
+        className="flex max-h-[min(40dvh,14rem)] flex-col gap-inline overflow-y-auto overscroll-contain md:max-h-56"
       >
         {filtered.map((group) => (
           <div key={group.category} className="flex flex-col gap-1">
@@ -171,7 +178,7 @@ export function ModelPickerPanel({ config, onSelect }: ModelPickerPanelProps) {
                   aria-selected={isActive}
                   title={entry.id}
                   className={cn(
-                    "flex w-full min-w-0 items-center gap-2 rounded-token-sm px-2 py-2 text-left transition-colors",
+                    "flex w-full min-w-0 items-center gap-inline rounded-token-sm px-sidebar py-sidebar-item text-left transition-colors",
                     isActive
                       ? "bg-surface-raised text-text-primary"
                       : "text-text-secondary hover:bg-surface-raised/60 hover:text-text-primary",

@@ -1,14 +1,14 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const ALLOWED_HOSTS = new Set([
-  "ai.dealwithsign.com",
-  "localhost",
-  "127.0.0.1",
-]);
-
-const GATE_COOKIE = "minorum_gate";
-const GATE_COOKIE_VALUE = "1";
+import {
+  isAllowedProductionHost,
+  isLocalHost,
+} from "@/lib/core/auth/allowed-hosts";
+import {
+  GATE_COOKIE_NAME,
+  verifyGateToken,
+} from "@/lib/core/auth/gate-cookie";
 
 function requestHost(request: NextRequest): string {
   const raw =
@@ -22,20 +22,18 @@ function rewriteWelcome(request: NextRequest): NextResponse {
   return NextResponse.rewrite(new URL("/welcome.html", request.url));
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const host = requestHost(request);
-  const isLocal = ALLOWED_HOSTS.has(host) && host !== "ai.dealwithsign.com";
 
-  if (!(ALLOWED_HOSTS.has(host) || host.endsWith(".localhost"))) {
-    return rewriteWelcome(request);
-  }
-
-  // Localhost skips cookie gate; AppGate still redirects to /welcome if no config.
-  if (isLocal || host.endsWith(".localhost")) {
+  if (isLocalHost(host)) {
     return NextResponse.next();
   }
 
-  if (request.cookies.get(GATE_COOKIE)?.value === GATE_COOKIE_VALUE) {
+  if (!isAllowedProductionHost(host)) {
+    return rewriteWelcome(request);
+  }
+
+  if (await verifyGateToken(request.cookies.get(GATE_COOKIE_NAME)?.value)) {
     return NextResponse.next();
   }
 

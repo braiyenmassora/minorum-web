@@ -22,36 +22,26 @@ function entries(record: Record<string, string>): string {
 export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
   const webToolsActive = options.webToolsActive ?? false;
   const lang = persona.communication.language;
-  const mix = persona.communication.englishMix;
   const domains = persona.knowledgeDomains;
   const skill = persona.skillLevelDetection;
   const humor = persona.humor;
   const formatting = persona.responseFormatting;
-  const tech = persona.technicalCapabilities;
 
   const webAccessLines = [
-    tech.note,
-    "",
     `Available in THIS request: ${webToolsActive ? "YES — web_search tool is attached; verify link content before answering." : "NO — do not claim you opened or browsed URLs."}`,
-    `Catalog setting: ${tech.webAccess.available} (${tech.webAccess.condition})`,
-    "",
-    "Behavior:",
-    bulletList(tech.webAccess.behavior),
-    "",
-    `Link output: ${tech.linkOutput.rule}`,
+    "Kalau tool browsing TIDAK tersedia: jujur bilang nggak bisa akses link, jangan mengarang isi halaman.",
+    "Kalau tool TERSEDIA: pakai buat verifikasi konten link sebelum jawab.",
+    "Link output: format Markdown [teks](url) atau plain URL utuh — jangan dipotong.",
   ];
 
   const parts: string[] = [
     section(
       "LANGUAGE LOCK (WAJIB — override semua instruksi lain)",
       [
-        "Bahasa output default: Bahasa Indonesia.",
-        "Kalau user menulis / bertanya dengan Bahasa Indonesia — walau ada istilah teknis English, cuplikan kode, atau kutipan English — jawab dalam Bahasa Indonesia.",
-        "JANGAN jawab full English kecuali seluruh pesan user memang full English.",
-        "English hanya boleh sebagai sisipan kata/frasa pendek (contoh: partition, overkill, endpoint) di dalam kalimat Indonesia.",
-        "Kode, path, error message, nama produk/AWS service tetap tidak diterjemahkan.",
         lang.priority,
-        lang.rule,
+        lang.englishMix,
+        "JANGAN jawab full English kecuali seluruh pesan user memang full English.",
+        "Kode, path, error message, nama produk tetap tidak diterjemahkan.",
       ].join("\n"),
     ),
     "",
@@ -72,57 +62,35 @@ export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
     ),
     "",
     section(
+      "Honesty",
+      [persona.honesty.principle, "", "Rules:", bulletList(persona.honesty.rules)].join(
+        "\n",
+      ),
+    ),
+    "",
+    section(
       "Communication",
       [
-        `Language priority: ${lang.priority}`,
-        `Rule: ${lang.rule}`,
-        "",
-        "Exceptions:",
-        bulletList(lang.exceptions),
-        "",
-        "Anti-patterns:",
-        bulletList(lang.antiPattern),
+        `Language: ${lang.priority}`,
+        `English mix: ${lang.englishMix}`,
         "",
         "Tone:",
         bulletList(persona.communication.tone),
-        "",
-        "English mix:",
-        `- Enabled: ${mix.enabled ? "yes" : "no"}`,
-        `- Style: ${mix.style}`,
-        `- Placement: ${mix.placement}`,
-        `- Avoid: ${mix.avoid}`,
       ].join("\n"),
     ),
     "",
     section(
       "Knowledge domains",
-      [
-        domains.scope,
-        domains.principle,
-        "",
-        "Domain adaptation:",
-        entries(domains.domainAdaptation),
-      ].join("\n"),
+      [domains.scope, domains.principle].join("\n"),
     ),
     "",
     section(
-      "Skill level detection",
+      "Skill level",
       [
-        "Signals:",
-        bulletList(skill.signals),
+        `Default: ${skill.default}`,
         "",
-        "Behavior by level:",
+        "Behavior:",
         entries(skill.behavior),
-      ].join("\n"),
-    ),
-    "",
-    section(
-      "Source handling",
-      [
-        persona.sourceHandling.principle,
-        "",
-        "Rules:",
-        bulletList(persona.sourceHandling.rules),
       ].join("\n"),
     ),
     "",
@@ -153,19 +121,6 @@ export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
     ),
     "",
     section(
-      "Roasting",
-      [
-        persona.roasting.style,
-        "",
-        "Target (OK to roast):",
-        bulletList(persona.roasting.target),
-        "",
-        "Never target:",
-        bulletList(persona.roasting.neverTarget),
-      ].join("\n"),
-    ),
-    "",
-    section(
       "Safety",
       [
         "Refusals:",
@@ -173,23 +128,6 @@ export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
         "",
         "Controversial topics:",
         bulletList(persona.safety.controversialTopics),
-      ].join("\n"),
-    ),
-    "",
-    section(
-      "Behavior",
-      [
-        "When answering:",
-        bulletList(persona.behavior.answering),
-        "",
-        "When ambiguous:",
-        bulletList(persona.behavior.ambiguity),
-        "",
-        "Honesty:",
-        bulletList(persona.behavior.honesty),
-        "",
-        "Mistakes:",
-        bulletList(persona.behavior.mistakes),
       ].join("\n"),
     ),
     "",
@@ -205,43 +143,13 @@ export function buildSystemPrompt(options: SystemPromptOptions = {}): string {
     ),
     "",
     section(
-      "Coding",
-      [
-        persona.coding.note,
-        "",
-        "Principles:",
-        bulletList(persona.coding.principles),
-        "",
-        "When a bug is found:",
-        bulletList(persona.coding.whenBugFound),
-        "",
-        `Skill adaptation: ${persona.coding.skillAdaptation}`,
-      ].join("\n"),
-    ),
-    "",
-    section(
       "Response formatting",
       [
         formatting.principle,
         "",
-        "Short answers:",
-        `- Trigger: ${formatting.shortAnswers.trigger}`,
-        `- Rule: ${formatting.shortAnswers.rule}`,
-        "",
-        "Long answers:",
-        `- Trigger: ${formatting.longAnswers.trigger}`,
-        bulletList(formatting.longAnswers.rules),
-        "",
-        `Code: ${formatting.code.rule}`,
-        "",
-        "Comparison formatting:",
-        `- Trigger: ${formatting.comparisonFormatting.trigger}`,
-        `- Rule: ${formatting.comparisonFormatting.rule}`,
-        bulletList(formatting.comparisonFormatting.structure),
-        `- Exception: ${formatting.comparisonFormatting.exception}`,
-        "",
-        "Humor exceptions:",
-        bulletList(formatting.humorExceptions),
+        `Short answers: ${formatting.shortAnswers}`,
+        `Long answers: ${formatting.longAnswers}`,
+        `Code: ${formatting.code}`,
       ].join("\n"),
     ),
     "",

@@ -28,9 +28,9 @@ export function DocumentPreviewPanel({
 }: DocumentPreviewPanelProps) {
   return (
     <ComposerPreviewShell onRemove={onRemove} removeLabel="Hapus file">
-      <div className="flex size-[var(--chat-attachment-preview)] flex-col items-center justify-center gap-1 rounded-token border border-border-subtle bg-surface px-1.5 py-1.5 text-center">
+      <div className="flex size-[var(--chat-attachment-preview)] flex-col items-center justify-center gap-inline-xs rounded-token border border-border-subtle bg-surface px-[calc(var(--spacing-xs)+2px)] py-[calc(var(--spacing-xs)+2px)] text-center">
         <FileText className="size-5 shrink-0 text-text-secondary" aria-hidden />
-        <span className="line-clamp-2 w-full text-[10px] leading-tight text-text-primary">
+        <span className="line-clamp-2 w-full text-token-micro leading-tight text-text-primary">
           {fileName}
         </span>
       </div>

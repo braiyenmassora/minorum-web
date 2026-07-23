@@ -1,30 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Fira_Code, Geist, Geist_Mono } from "next/font/google";
-import localFont from "next/font/local";
+import { Fira_Code, Geist, IBM_Plex_Sans } from "next/font/google";
 import { MobileViewportSync } from "@/components/mobile-viewport-sync";
+import { AppToastHost } from "@/components/ui/app-toast";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/** Body UI — IBM Plex Sans. */
+const ibmPlexSans = IBM_Plex_Sans({
+  variable: "--font-ibm-plex-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+/** Display & wordmark — Geist Sans (greeting, user name, Minorum title). */
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
 const firaCode = Fira_Code({
   variable: "--font-fira-code",
   subsets: ["latin"],
-});
-
-/** Brand wordmark "Minorum" — body UI stays Geist. */
-const funnelDisplay = localFont({
-  src: "../public/fonts/FunnelDisplay-ExtraBold.woff2",
-  variable: "--font-funnel-display",
-  weight: "800",
-  display: "swap",
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -59,7 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} ${firaCode.variable} ${funnelDisplay.variable} dark h-full antialiased`}
+      className={`${ibmPlexSans.variable} ${geistSans.variable} ${firaCode.variable} dark h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -74,6 +70,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <MobileViewportSync />
+        <AppToastHost />
         {children}
       </body>
     </html>

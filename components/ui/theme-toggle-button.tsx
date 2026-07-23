@@ -2,7 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 
-import { useThemeMode } from "@/lib/services/theme-storage-service";
+import { useThemeMode } from "@/hooks/use-theme-mode";
 import { cn } from "@/lib/utils";
 
 type ThemeToggleButtonProps = {
@@ -18,7 +18,7 @@ export function ThemeToggleButton({ className }: ThemeToggleButtonProps) {
     <button
       type="button"
       className={cn(
-        "inline-flex size-11 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary md:size-7",
+        "inline-flex icon-btn-responsive items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary",
         className,
       )}
       onClick={toggleTheme}

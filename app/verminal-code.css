@@ -1,4 +1,4 @@
-/* Verminal code block — dark chrome, highlight.js tokens */
+/* Code block — Cursor / One Dark Pro palette (pure black canvas) */
 
 .verminal-code {
   color-scheme: dark;
@@ -6,9 +6,9 @@
 
 .verminal-code__shell {
   overflow: hidden;
-  border: 1px solid #262626;
-  border-radius: 22px;
-  background: #171717;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-code-block);
+  background: #000000;
 }
 
 .verminal-code__header {
@@ -17,121 +17,159 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.875rem 1rem 0.5rem;
+  background: #000000;
 }
 
 .verminal-code__lang {
   font-family: var(--font-sans);
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
-  color: #ffffff;
+  color: #e0e0e0;
 }
 
 .verminal-code__copy {
-  color: #a3a3a3;
+  color: #808080;
 }
 
 .verminal-code__copy:hover {
-  color: #ffffff;
+  color: #e0e0e0;
   background: rgb(255 255 255 / 0.06);
 }
 
 .verminal-code__pre {
   margin: 0;
-  overflow-x: auto;
+  overflow: auto;
   padding: 0 1rem 1.25rem;
-  background: transparent;
-  color: #ffffff;
+  background: #000000;
+  color: #e0e0e0;
   scrollbar-width: thin;
-  scrollbar-color: #404040 transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
   -webkit-overflow-scrolling: touch;
 }
 
 .verminal-code__pre::-webkit-scrollbar {
+  width: 6px;
   height: 6px;
 }
 
 .verminal-code__pre::-webkit-scrollbar-thumb {
   border-radius: 9999px;
-  background: #404040;
+  background: var(--scrollbar-thumb);
 }
 
 .verminal-code .hljs {
   display: block;
   background: transparent;
-  color: #ffffff;
+  color: #e0e0e0;
   font-family:
-    var(--font-fira-code), "Fira Code", "FiraCode Nerd Font", var(--font-mono),
+    var(--font-fira-code), "Fira Code", ui-monospace, "Cascadia Code", Consolas,
     monospace;
+  font-size: 15px;
+  font-weight: 500;
   font-variant-ligatures: contextual;
-  font-size: 14px;
-  line-height: 1.65;
+  letter-spacing: 0.015em;
+  line-height: 1.6;
   white-space: pre;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
 }
 
 /* Comment */
 .verminal-code .hljs-comment,
 .verminal-code .hljs-quote {
-  color: #737373;
+  color: #6a9955;
   font-style: italic;
+  font-weight: 400;
 }
 
-/* Keyword */
+/* Keyword — import, const, return, if, throw, … */
 .verminal-code .hljs-keyword,
 .verminal-code .hljs-selector-tag,
 .verminal-code .hljs-literal {
-  color: #c792ea;
+  color: #c586c0;
+  font-weight: 600;
 }
 
 /* String */
 .verminal-code .hljs-string,
-.verminal-code .hljs-regexp {
-  color: #c3e88d;
+.verminal-code .hljs-regexp,
+.verminal-code .hljs-template-variable,
+.verminal-code .hljs-template-tag {
+  color: #ce9178;
+  font-weight: 500;
 }
 
 /* Number */
 .verminal-code .hljs-number {
-  color: #f78c6c;
+  color: #b5cea8;
+  font-weight: 500;
 }
 
-/* Function / title */
+/* Function / method */
 .verminal-code .hljs-title,
 .verminal-code .hljs-title.function_,
 .verminal-code .hljs-section {
-  color: #82aaff;
+  color: #dcdcaa;
+  font-weight: 600;
 }
 
-/* Type / variable / attr */
+/* Type / class */
 .verminal-code .hljs-type,
+.verminal-code .hljs-class .hljs-title {
+  color: #4ec9b0;
+  font-weight: 600;
+}
+
+/* Variable / param / property */
 .verminal-code .hljs-variable,
+.verminal-code .hljs-params,
+.verminal-code .hljs-property,
 .verminal-code .hljs-attr,
 .verminal-code .hljs-attribute {
-  color: #ffcb6b;
+  color: #9cdcfe;
+  font-weight: 500;
+}
+
+/* Built-in / constructor */
+.verminal-code .hljs-built_in,
+.verminal-code .hljs-title.class_ {
+  color: #4ec9b0;
+  font-weight: 600;
 }
 
 /* Tags / names */
 .verminal-code .hljs-name,
 .verminal-code .hljs-tag {
-  color: #f07178;
+  color: #569cd6;
+  font-weight: 600;
 }
 
 .verminal-code .hljs-symbol,
 .verminal-code .hljs-deletion {
-  color: #8e8e93;
+  color: #e0e0e0;
   text-decoration: line-through;
 }
 
-.verminal-code .hljs-punctuation,
+/* Operators & punctuation */
 .verminal-code .hljs-operator {
-  color: #d4d4d8;
+  color: #d4d4d4;
+  font-weight: 500;
 }
 
-.verminal-code .hljs-built_in,
-.verminal-code .hljs-params,
+.verminal-code .hljs-punctuation {
+  color: #d4d4d4;
+  font-weight: 500;
+}
+
 .verminal-code .hljs-meta,
-.verminal-code .hljs-addition,
-.verminal-code .hljs-property {
-  color: #e5e5e5;
+.verminal-code .hljs-meta .hljs-keyword {
+  color: #c586c0;
+  font-weight: 600;
+}
+
+.verminal-code .hljs-addition {
+  color: #6a9955;
 }
 
 .verminal-code .hljs-emphasis {

@@ -1,37 +1,48 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-const API_BASE_HEADER = "x-minorum-api-base";
+import { hasGateCookie } from "@/lib/core/auth/gate-cookie";
+import { getApiDefaults, isProduction } from "@/lib/env";
 
-function isAllowedBaseUrl(baseUrl: string): boolean {
-  try {
-    const parsed = new URL(baseUrl);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
+const ALLOWED_PROXY_PATHS = new Set([
+  "models",
+  "chat/completions",
+  "audio/speech",
+]);
+
+const PROXY_TIMEOUT_MS = 120_000;
+
+async function isProxyAuthorized(request: NextRequest): Promise<boolean> {
+  if (!isProduction()) {
+    return true;
   }
+  return hasGateCookie(request);
 }
 
 async function proxyRequest(
   request: NextRequest,
   path: string[],
 ): Promise<NextResponse> {
-  const baseUrl = request.headers.get(API_BASE_HEADER);
-  if (!baseUrl || !isAllowedBaseUrl(baseUrl)) {
+  if (!(await isProxyAuthorized(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const defaults = getApiDefaults();
+  if (!defaults) {
     return NextResponse.json(
-      { error: "Invalid API base URL" },
-      { status: 400 },
+      { error: "Server API config missing" },
+      { status: 500 },
     );
   }
 
-  const normalizedBase = baseUrl.replace(/\/+$/, "");
   const targetPath = path.join("/");
-  const target = `${normalizedBase}/${targetPath}${request.nextUrl.search}`;
+  if (!ALLOWED_PROXY_PATHS.has(targetPath)) {
+    return NextResponse.json({ error: "Forbidden path" }, { status: 403 });
+  }
+
+  const target = `${defaults.apiBaseUrl}/${targetPath}${request.nextUrl.search}`;
 
   const headers = new Headers();
-  const authorization = request.headers.get("authorization");
-  if (authorization) {
-    headers.set("Authorization", authorization);
-  }
+  headers.set("Authorization", `Bearer ${defaults.apiKey}`);
 
   const contentType = request.headers.get("content-type");
   if (contentType) {
@@ -47,6 +58,8 @@ async function proxyRequest(
       method: request.method,
       headers,
       body,
+      redirect: "error",
+      signal: AbortSignal.timeout(PROXY_TIMEOUT_MS),
     });
   } catch {
     return NextResponse.json(

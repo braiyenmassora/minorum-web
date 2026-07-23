@@ -27,6 +27,7 @@ import {
 import { ModelPickerPanel } from "@/components/chat/model-picker-panel";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { AppLogo } from "@/components/ui/app-logo";
+import { showAppToast } from "@/components/ui/app-toast";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
 import type { AppConfig } from "@/lib/core/config/app-config";
@@ -40,7 +41,7 @@ import {
   getModelDisplayName,
   resolveModelSelection,
 } from "@/lib/core/config/model-label";
-import { messageForApiError } from "@/lib/core/copy/api-error-message";
+import { toastMessageForApiError } from "@/lib/core/copy/api-error-message";
 import { getAppCopy } from "@/lib/core/copy/app-copy";
 import type { ChatSession } from "@/lib/models/chat-session";
 import type { Message } from "@/lib/models/message";
@@ -71,8 +72,8 @@ import {
 import { cn } from "@/lib/utils";
 import {
   fetchServerClockOffsetMs,
+  formatGreetingTitle,
   formatJakartaEmptySubtitle,
-  jakartaGreeting,
   serverAlignedNow,
 } from "@/lib/utils/jakarta-clock";
 
@@ -108,7 +109,6 @@ export function ChatScreen({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const [pendingDocument, setPendingDocument] =
@@ -120,7 +120,9 @@ export function ChatScreen({
   const [emptySubtitle, setEmptySubtitle] = useState(
     formatJakartaEmptySubtitle,
   );
-  const [greeting, setGreeting] = useState(jakartaGreeting);
+  const [greeting, setGreeting] = useState(() =>
+    formatGreetingTitle(initialConfig.fullName),
+  );
   const [systemStatus, setSystemStatus] = useState<SystemStatus>("checking");
   const [historyOpen, setHistoryOpen] = useState(false);
   const serverClockOffsetMsRef = useRef(0);
@@ -362,7 +364,7 @@ export function ChatScreen({
     const tick = () => {
       const now = serverAlignedNow(serverClockOffsetMsRef.current);
       setEmptySubtitle(formatJakartaEmptySubtitle(now));
-      setGreeting(jakartaGreeting(now));
+      setGreeting(formatGreetingTitle(config.fullName, now));
     };
 
     void fetchServerClockOffsetMs()
@@ -385,7 +387,7 @@ export function ChatScreen({
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [showEmptyState]);
+  }, [showEmptyState, config.fullName]);
 
   const startNewSession = useCallback(() => {
     abortRef.current?.abort();
@@ -397,7 +399,6 @@ export function ChatScreen({
     setInput("");
     setPendingImage(null);
     setPendingDocument(null);
-    setErrorMessage(null);
     setStreaming(false);
     setModelPickerOpen(false);
   }, []);
@@ -424,7 +425,6 @@ export function ChatScreen({
       setMessages(history);
       messagesRef.current = history;
       setStreaming(true);
-      setErrorMessage(null);
 
       const abortController = new AbortController();
       abortRef.current = abortController;
@@ -479,7 +479,10 @@ export function ChatScreen({
 
         const apiError = toChatApiError(error);
         if (apiError.kind !== "cancelled") {
-          setErrorMessage(messageForApiError(apiError.kind));
+          const toast = toastMessageForApiError(apiError.kind);
+          if (toast) {
+            showAppToast(toast);
+          }
         }
 
         setMessages((current) => {
@@ -589,7 +592,6 @@ export function ChatScreen({
     // Guard against session switches while the file is being processed.
     const epoch = sessionEpochRef.current;
     setAttachingImage(true);
-    setErrorMessage(null);
 
     try {
       const prepared = await prepareImageAttachment(file);
@@ -600,7 +602,7 @@ export function ChatScreen({
       setModelPickerOpen(false);
     } catch {
       if (sessionEpochRef.current === epoch) {
-        setErrorMessage(getAppCopy().error_and_snackbar_messages.unknown);
+        showAppToast("Something went wrong");
       }
     } finally {
       setAttachingImage(false);
@@ -618,7 +620,6 @@ export function ChatScreen({
 
     const epoch = sessionEpochRef.current;
     setAttachingDocument(true);
-    setErrorMessage(null);
 
     try {
       const prepared = await prepareDocumentAttachment(file);
@@ -630,13 +631,9 @@ export function ChatScreen({
         fileName: prepared.fileName,
       });
       setModelPickerOpen(false);
-    } catch (error) {
+    } catch {
       if (sessionEpochRef.current === epoch) {
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : getAppCopy().error_and_snackbar_messages.unknown,
-        );
+        showAppToast("Something went wrong");
       }
     } finally {
       setAttachingDocument(false);
@@ -670,7 +667,6 @@ export function ChatScreen({
     setInput("");
     setPendingImage(null);
     setPendingDocument(null);
-    setErrorMessage(null);
     setStreaming(false);
     setModelPickerOpen(false);
     setHistoryOpen(false);
@@ -714,7 +710,6 @@ export function ChatScreen({
 
   function handleModelSelect(modelName: string) {
     setConfig((current) => updateConfigModel(current, modelName));
-    setErrorMessage(null);
     setModelPickerOpen(false);
   }
 
@@ -745,7 +740,7 @@ export function ChatScreen({
         <SheetContent
           side="left"
           showCloseButton={false}
-          className="w-[min(280px,85vw)] gap-0 border-0 p-0 pt-[env(safe-area-inset-top,0px)] sm:max-w-[280px]"
+          className="w-[min(var(--sidebar-width),85vw)] gap-0 border-0 p-0 pt-[env(safe-area-inset-top,0px)] sm:max-w-[var(--sidebar-width)]"
         >
           <SheetTitle className="sr-only">
             {copy.chat_history_sidebar.title}
@@ -765,48 +760,46 @@ export function ChatScreen({
         <header className="flex shrink-0 items-center gap-1.5 border-b border-border-subtle pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-2 pl-[max(var(--content-inset),env(safe-area-inset-left,0px))] pr-[max(var(--content-inset),env(safe-area-inset-right,0px))] md:hidden">
           <button
             type="button"
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary active:bg-surface-raised"
+            className="icon-btn-responsive inline-flex shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary active:bg-surface-raised"
             onClick={() => setHistoryOpen(true)}
             aria-label={copy.chat_history_sidebar.title}
           >
             <Menu className="size-5" />
           </button>
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-inline">
             <AppLogo size={28} className="shrink-0 rounded-full" />
-            <span className="font-display truncate text-token-body font-extrabold tracking-tight text-text-primary">
+            <span className="font-geist truncate text-token-body text-text-primary">
               Minorum
             </span>
           </div>
           <button
             type="button"
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary active:bg-surface-raised"
+            className="icon-btn-responsive inline-flex shrink-0 items-center justify-center rounded-token-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary active:bg-surface-raised"
             onClick={handleNewChat}
             aria-label={copy.chat_history_sidebar.new_chat}
           >
             <Plus className="size-5" />
           </button>
-          <ThemeToggleButton className="size-11 shrink-0" />
+          <ThemeToggleButton className="shrink-0" />
         </header>
 
         <div
           ref={scrollRef}
-          className="chat-scroll scroll-pb-composer-top scroll-pt-composer-top min-h-0 flex-1 overflow-y-auto overscroll-contain pl-[max(var(--content-inset),env(safe-area-inset-left,0px))] pr-[max(var(--content-inset),env(safe-area-inset-right,0px))]"
+          className="chat-scroll scroll-pb-composer-top scroll-pt-composer-top min-h-0 flex-1 overscroll-contain pl-[max(var(--content-inset),env(safe-area-inset-left,0px))] pr-[max(var(--content-inset),env(safe-area-inset-right,0px))]"
         >
           <div
             className={cn(
               "mx-auto flex w-full max-w-[var(--chat-max-width)] flex-col gap-chat-message",
               messages.length > 0 && "min-h-full justify-end pt-composer-top",
-              showEmptyState && "min-h-full justify-center py-3",
+              showEmptyState && "min-h-full justify-center py-[var(--spacing-md)]",
             )}
           >
             {showEmptyState ? (
-              <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center gap-panel">
                 <AppLogo size={56} priority />
                 <div className="flex flex-col gap-1 text-center">
-                  <h1 className="text-[24px] leading-[1.2] font-medium tracking-[-0.48px] text-text-primary">
-                    {config.fullName.trim()
-                      ? `${greeting}, ${config.fullName.trim().split(/\s+/)[0]}`
-                      : greeting}
+                  <h1 className="font-geist text-title-large text-text-primary">
+                    {greeting}
                   </h1>
                   <p className="text-token-body text-text-secondary">
                     {emptySubtitle}
@@ -848,16 +841,7 @@ export function ChatScreen({
             ) : null}
 
             <div className="overflow-hidden rounded-token border border-border-subtle bg-assistant-bubble shadow-floating">
-              {errorMessage ? (
-                <div
-                  role="alert"
-                  className="border-b border-border-subtle px-composer py-composer text-token-label text-error"
-                >
-                  {errorMessage}
-                </div>
-              ) : null}
-
-              <div className="flex items-center justify-between gap-2 px-composer py-composer">
+              <div className="flex items-center justify-between gap-inline px-composer py-composer">
                 <button
                   type="button"
                   className="inline-flex min-w-0 flex-1 items-center gap-1 text-left text-token-body font-bold text-text-primary transition-opacity hover:opacity-80 disabled:pointer-events-none"
@@ -878,7 +862,7 @@ export function ChatScreen({
                     )}
                   />
                 </button>
-                <div className="flex shrink-0 items-center justify-end gap-0.5">
+                <div className="flex shrink-0 items-center justify-end gap-inline-2xs">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -928,7 +912,7 @@ export function ChatScreen({
 
               <div className="border-t border-border-subtle">
                 {hasComposerPreview ? (
-                  <div className="flex flex-wrap items-start gap-2 px-composer pt-composer">
+                  <div className="flex flex-wrap items-start gap-inline px-composer pt-composer">
                     {pendingImage ? (
                       <ImagePreviewPanel
                         src={pendingImage}
@@ -945,7 +929,7 @@ export function ChatScreen({
                   </div>
                 ) : null}
 
-                <div className="flex items-end gap-3 px-composer py-composer">
+                <div className="flex items-end gap-[var(--spacing-md)] px-composer py-composer">
                   <textarea
                     ref={textareaRef}
                     value={input}
@@ -958,7 +942,7 @@ export function ChatScreen({
                     placeholder={copy.chat_screen_input_header.placeholder}
                     aria-label={copy.chat_screen_input_header.placeholder}
                     disabled={composerLocked}
-                    className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none rounded-token-sm bg-transparent px-0 py-[7px] text-base leading-[1.5] outline-none focus-visible:outline-2 focus-visible:outline-focus-ring placeholder:text-text-muted disabled:opacity-50 md:text-token-body"
+                    className="composer-textarea min-h-[var(--composer-icon-size)] flex-1 resize-none rounded-token-sm bg-transparent px-0 py-composer-text text-token-body leading-[1.5] outline-none focus-visible:outline-2 focus-visible:outline-focus-ring placeholder:text-text-muted disabled:opacity-50"
                   />
                   {streaming ? (
                     <button

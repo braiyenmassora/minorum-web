@@ -1,8 +1,8 @@
+import { readWebToolsConfigFromEnv } from "@/lib/env";
 import {
   detectWebToolProvider,
   looksLikeToolRejection,
   modelOnWebToolsAllowlist,
-  readWebToolsConfigFromEnv,
   resolveWebToolsForModel,
   webToolsActiveForRequest,
   webToolsEligible,

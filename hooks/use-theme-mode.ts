@@ -14,7 +14,6 @@ function readStoredTheme(): ThemeMode {
     if (stored === "light" || stored === "dark") {
       return stored;
     }
-    // First visit: persist dark so later loads stay dark until user toggles.
     localStorage.setItem(STORAGE_KEY, DEFAULT_THEME);
   } catch {
     // ignore
@@ -28,7 +27,11 @@ function applyTheme(theme: ThemeMode): void {
   root.style.colorScheme = theme;
 }
 
-export function useThemeMode() {
+export function useThemeMode(): {
+  theme: ThemeMode;
+  setTheme: (next: ThemeMode) => void;
+  toggleTheme: () => void;
+} {
   const [theme, setThemeState] = useState<ThemeMode>(DEFAULT_THEME);
 
   useEffect(() => {

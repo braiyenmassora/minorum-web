@@ -22,7 +22,8 @@
 
 # misc
 .DS_Store
-*.pem
+Thumbs.db
+*:Zone.Identifier
 
 # debug
 npm-debug.log*
@@ -30,9 +31,18 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env / secrets — real values only in local .env (never commit)
 .env*
 !.env.example
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# local tooling
+.cursor/
+.vscode/
+.idea/
 
 # vercel
 .vercel

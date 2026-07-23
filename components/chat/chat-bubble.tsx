@@ -31,7 +31,7 @@ function UserBubbleText({ text }: { text: string }) {
   const copy = getAppCopy();
 
   return (
-    <div className="w-fit max-w-[var(--user-bubble-max-width)] min-w-0 rounded-token bg-user-bubble px-3.5 py-2.5 text-token-body leading-[1.55] text-text-on-user">
+    <div className="w-fit max-w-[var(--user-bubble-max-width)] min-w-0 rounded-token bg-user-bubble px-bubble py-bubble text-token-body leading-[1.55] text-text-on-user">
       <p
         className={cn(
           "break-words whitespace-pre-wrap",
@@ -46,7 +46,7 @@ function UserBubbleText({ text }: { text: string }) {
       {truncatable ? (
         <button
           type="button"
-          className="mt-1.5 text-[11px] font-semibold tracking-wide text-text-on-user/75 uppercase hover:text-text-on-user"
+          className="text-token-caption mt-1.5 uppercase text-text-on-user/75 hover:text-text-on-user"
           onClick={() => setExpanded((value) => !value)}
           aria-expanded={expanded}
         >
@@ -71,7 +71,7 @@ function ChatFileChip({
       href={url}
       download={name}
       className={cn(
-        "inline-flex max-w-full items-center gap-2 rounded-token border border-border-subtle bg-assistant-bubble px-3 py-2 text-token-body-medium text-text-primary transition-colors hover:bg-surface-raised",
+        "inline-flex max-w-full items-center gap-stack-sm rounded-token border border-border-subtle bg-assistant-bubble px-[var(--spacing-md)] py-[var(--spacing-sm)] text-token-body-medium text-text-primary transition-colors hover:bg-surface-raised",
         alignEnd && "self-end",
       )}
     >
@@ -99,7 +99,7 @@ export function ChatBubble({
   const mediaRow = (
     <div
       className={cn(
-        "flex flex-wrap gap-1.5",
+        "flex flex-wrap gap-stack-sm",
         isUser ? "justify-end" : "justify-start",
       )}
     >
@@ -135,7 +135,7 @@ export function ChatBubble({
   return (
     <div
       className={cn(
-        "flex w-full min-w-0 flex-col gap-2.5",
+        "flex w-full min-w-0 flex-col gap-stack-md",
         isUser ? "items-end" : "items-start",
       )}
     >

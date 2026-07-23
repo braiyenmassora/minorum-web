@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap"
     rel="stylesheet"
   />
   <style>
@@ -22,7 +22,7 @@
       place-items: center;
       background: #0f0f0f;
       color: #ffffff;
-      font-family: Geist, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
       padding: max(1.5rem, env(safe-area-inset-top, 0px))
@@ -51,10 +51,11 @@
       gap: 0.25rem;
     }
     h1 {
+      font-family: "Geist", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
       font-size: 24px;
       line-height: 1.2;
-      font-weight: 500;
-      letter-spacing: -0.48px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
       color: #ffffff;
     }
     p {
@@ -180,7 +181,6 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password: password.value }),
-          // Don't hang the button forever if the server stalls.
           signal: AbortSignal.timeout(20000),
         });
         const payload = await response.json().catch(() => ({}));

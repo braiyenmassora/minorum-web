@@ -1,24 +1,38 @@
-# Minorum Web
+# Minorum
 
-Web chat client for Minorum — ported from the Flutter app. Set up your API once, then chat with streaming, markdown, image upload, and model selection.
+Private chat UI — streaming, markdown, attachments, model picker. Built on Next.js App Router.
 
-## Stack
-
-Next.js 16 · React 19 · TypeScript · Tailwind CSS 4
-
-## Development
+## Quick Start
 
 ```bash
+cp .env.example .env
 npm install
 npm run dev
 ```
 
-## Run Locally
+Open `http://localhost:3000` → first-time setup at `/welcome` (password + name).
+
+> **Note:** localhost skips the cookie gate. Production requires login and a signed session cookie.
+
+## Environment Variables
+
+| Key | Required | Description |
+|---|---|---|
+| `MINORUM_DEFAULT_API_URL` | Always | Backend base URL (no `/v1` suffix — added server-side) |
+| `MINORUM_DEFAULT_API_KEY` | Always | API key injected by the proxy. Never exposed to the browser |
+| `MINORUM_DEFAULT_MODEL` | Optional | Default model id used after login |
+| `GATE_PASSWORD` | Always | Login password. Set locally, never commit |
+| `GATE_SESSION_SECRET` | Production | HMAC secret for the session cookie — generate with `openssl rand -base64 32` |
+| `MINORUM_ALLOWED_HOSTS` | Production | Comma-separated hostnames allowed to serve the app (e.g. `chat.example.com`) |
+
+
+## Scripts
 
 ```bash
-npm run lint          # ESLint
-npm run format        # Prettier (write)
-npm run format:check  # Prettier (check only)
-npm run build         # production build
-npm run start         # run production build locally
+npm run dev                      # Local development
+npm run build && npm run start   # Production build + smoke test
+npm run lint                     # Lint check
+npm run check:config             # Validate env/config setup
+npm run check:chat                # Smoke test chat flow
+npm run check:storage             # Verify storage/attachments setup
 ```

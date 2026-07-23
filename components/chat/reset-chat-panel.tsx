@@ -26,20 +26,20 @@ export function ResetChatPanel({
 
   return (
     <div className="border-b border-border-subtle px-composer py-composer">
-      <p className="mb-2 text-[length:var(--text-body-medium-size)] leading-snug text-text-secondary">
+      <p className="mb-[var(--spacing-sm)] text-token-body-medium leading-snug text-text-secondary">
         {body ?? copy.body}
       </p>
-      <div className="flex gap-2">
+      <div className="flex gap-inline">
         <button
           type="button"
-          className="focus-ring h-8 flex-1 rounded-token-sm border border-border-subtle text-[length:var(--text-body-medium-size)] text-text-secondary transition-colors hover:bg-surface-raised hover:text-text-primary"
+          className="focus-ring h-control-compact flex-1 rounded-token-sm border border-border-subtle text-token-body-medium text-text-secondary transition-colors hover:bg-surface-raised hover:text-text-primary"
           onClick={onCancel}
         >
           {cancelLabel ?? copy.cancel}
         </button>
         <button
           type="button"
-          className="focus-ring h-8 flex-1 rounded-token-sm bg-accent-primary text-[length:var(--text-body-medium-size)] text-text-on-accent transition-opacity hover:opacity-90"
+          className="focus-ring h-control-compact flex-1 rounded-token-sm bg-accent-primary text-token-body-medium text-text-on-accent transition-opacity hover:opacity-90"
           onClick={onConfirm}
         >
           {confirmLabel ?? copy.confirm}

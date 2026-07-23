@@ -1,5 +1,3 @@
-"use client";
-
 import { RotateCcw } from "lucide-react";
 
 import { CopyIconButton } from "@/components/chat/copy-icon-button";
@@ -20,7 +18,7 @@ export function UserMessageActions({
   const copy = getAppCopy().chat_bubble;
 
   return (
-    <div className="mt-1 flex items-center justify-end gap-1.5">
+    <div className="mt-1 flex items-center justify-end gap-stack-sm">
       {text.trim() ? <CopyIconButton text={text} label={copy.copy} /> : null}
       <button
         type="button"
@@ -28,7 +26,7 @@ export function UserMessageActions({
         disabled={disabled}
         aria-label={copy.retry}
         className={cn(
-          "inline-flex size-7 items-center justify-center rounded-token-sm text-text-muted transition-colors",
+          "inline-flex size-control-xs items-center justify-center rounded-token-sm text-text-muted transition-colors",
           "hover:bg-surface-raised hover:text-text-primary disabled:pointer-events-none disabled:opacity-40",
         )}
       >

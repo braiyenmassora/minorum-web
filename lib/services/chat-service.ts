@@ -98,14 +98,11 @@ function resolveRequestTarget(
   config: AppConfig,
   endpoint: "models" | "chat/completions",
 ): { url: string; headers: HeadersInit } {
-  // Browser: same-origin proxy avoids CORS / mixed-content blocks.
+  // Browser: same-origin proxy — auth & upstream URL injected server-side.
   if (typeof window !== "undefined") {
     return {
       url: `/api/proxy/${endpoint}`,
-      headers: {
-        ...authHeaders(config.apiKey),
-        "X-Minorum-Api-Base": config.apiBaseUrl,
-      },
+      headers: { "Content-Type": "application/json" },
     };
   }
 

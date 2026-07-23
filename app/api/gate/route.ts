@@ -1,52 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+  applyGateCookie,
+  clearGateCookie,
+  hasGateCookie,
+} from "@/lib/core/auth/gate-cookie";
 import { pickDefaultModel } from "@/lib/core/config/model-label";
-import { readWebToolsConfigFromEnv } from "@/lib/core/config/web-tools-config";
-
-const GATE_COOKIE = "minorum_gate";
-const GATE_COOKIE_VALUE = "1";
-const GATE_PASSWORD = process.env.GATE_PASSWORD?.trim() || "REDACTED";
-
-function hasGateCookie(request: NextRequest): boolean {
-  return request.cookies.get(GATE_COOKIE)?.value === GATE_COOKIE_VALUE;
-}
-
-function normalizeApiBaseUrl(raw: string): string {
-  const trimmed = raw.trim().replace(/\/+$/, "");
-  if (!trimmed) {
-    throw new Error("API URL kosong");
-  }
-  return trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
-}
-
-function readApiDefaults(): {
-  apiBaseUrl: string;
-  apiKey: string;
-  preferredModel: string;
-} | null {
-  const apiBaseUrl = process.env.MINORUM_DEFAULT_API_URL?.trim() ?? "";
-  const apiKey = process.env.MINORUM_DEFAULT_API_KEY?.trim() ?? "";
-  const preferredModel = process.env.MINORUM_DEFAULT_MODEL?.trim() ?? "";
-  if (!apiBaseUrl || !apiKey) {
-    console.error(
-      "[gate] Server API config missing — set MINORUM_DEFAULT_API_URL and MINORUM_DEFAULT_API_KEY in .env, then restart the server.",
-      {
-        hasUrl: Boolean(apiBaseUrl),
-        hasKey: Boolean(apiKey),
-      },
-    );
-    return null;
-  }
-  try {
-    return {
-      apiBaseUrl: normalizeApiBaseUrl(apiBaseUrl),
-      apiKey,
-      preferredModel,
-    };
-  } catch {
-    return null;
-  }
-}
+import { readWebToolsConfigFromEnv } from "@/lib/env";
+import { getApiDefaults, getGatePassword, isProduction } from "@/lib/env";
+import { gateLoginBodySchema } from "@/lib/validations/gate";
 
 async function testApiConnection(
   apiBaseUrl: string,
@@ -65,7 +27,6 @@ async function testApiConnection(
       },
       cache: "no-store",
       redirect: "error",
-      // Don't let a hung upstream stall the login request forever.
       signal: AbortSignal.timeout(15_000),
     });
   } catch {
@@ -121,13 +82,11 @@ async function testApiConnection(
 
 /** Sync API URL/key from current .env into an already-logged-in client. */
 export async function GET(request: NextRequest) {
-  // api/gate is outside middleware; require cookie in production so the key isn't public.
-  const allowUnauthed = process.env.NODE_ENV !== "production";
-  if (!allowUnauthed && !hasGateCookie(request)) {
+  if (isProduction() && !(await hasGateCookie(request))) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 
-  const defaults = readApiDefaults();
+  const defaults = getApiDefaults();
   if (!defaults) {
     return NextResponse.json(
       { ok: false, message: "Server API config missing" },
@@ -147,23 +106,26 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-  let password = "";
-
+  let body: unknown;
   try {
-    const body = (await request.json()) as { password?: unknown };
-    password = typeof body.password === "string" ? body.password : "";
+    body = await request.json();
   } catch {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
-  if (password !== GATE_PASSWORD) {
+  const parsed = gateLoginBodySchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
+
+  if (parsed.data.password !== getGatePassword()) {
     return NextResponse.json(
       { ok: false, message: "Wrong password" },
       { status: 401 },
     );
   }
 
-  const defaults = readApiDefaults();
+  const defaults = getApiDefaults();
   if (!defaults) {
     return NextResponse.json(
       { ok: false, message: "Server API config missing" },
@@ -192,24 +154,12 @@ export async function POST(request: Request) {
     },
     webTools: readWebToolsConfigFromEnv(),
   });
-  response.cookies.set(GATE_COOKIE, GATE_COOKIE_VALUE, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  await applyGateCookie(response);
   return response;
 }
 
 export async function DELETE() {
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(GATE_COOKIE, "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
+  clearGateCookie(response);
   return response;
 }

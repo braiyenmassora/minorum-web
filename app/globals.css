@@ -82,19 +82,19 @@
   --color-pressed-overlay: var(--minorum-pressed-overlay);
   --color-hover-overlay: var(--minorum-hover-overlay);
 
-  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", monospace;
-  --font-display: var(--font-funnel-display), var(--font-sans);
+  --font-sans: var(--font-ibm-plex-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-fira-code), ui-monospace, monospace;
+  --font-geist: var(--font-geist-sans), var(--font-sans);
 
   --text-display-large-size: 32px;
-  --text-display-large-weight: 500;
-  --text-display-large-line-height: 1.15;
-  --text-display-large-letter-spacing: -1.28px;
+  --text-display-large-weight: 600;
+  --text-display-large-line-height: 1.12;
+  --text-display-large-letter-spacing: -0.04em;
 
   --text-title-large-size: 24px;
-  --text-title-large-weight: 500;
+  --text-title-large-weight: 600;
   --text-title-large-line-height: 1.2;
-  --text-title-large-letter-spacing: -0.48px;
+  --text-title-large-letter-spacing: -0.02em;
 
   --text-title-small-size: 20px;
   --text-title-small-weight: 500;
@@ -126,7 +126,27 @@
   --spacing-lg: 16px;
   --spacing-xl: 24px;
   --spacing-xxl: 32px;
+  --spacing-2xs: 2px;
   --spacing-field-y: 12px;
+  --bubble-padding-x: 14px;
+  --bubble-padding-y: 10px;
+  --stack-gap-sm: 6px;
+  --stack-gap-md: 10px;
+  --composer-text-padding-y: 7px;
+  --control-height-compact: 32px;
+  --control-height-xs: 28px;
+  --control-height-medium: 36px;
+  --control-height-2xs: 24px;
+  --control-padding-x: 10px;
+  --avatar-size-sm: 32px;
+  --sidebar-width: 280px;
+  --text-caption-size: 11px;
+  --text-caption-weight: 600;
+  --text-caption-tracking: 0.05em;
+  --text-micro-size: 10px;
+  --radius-code-block: 22px;
+  --scrollbar-thumb: #404040;
+  --typing-dot-opacity: 0.45;
 
   --radius-standard: 10px;
   --radius-sm: 7px;
@@ -166,6 +186,8 @@
     --chat-message-gap: 1.25rem;
     --chat-markdown-block-gap: 0.75rem;
     --chat-markdown-line-height: 1.6;
+    /* 16px — cegah iOS auto-zoom saat focus input */
+    --text-body-large-size: 16px;
   }
 
   --minorum-shadow-floating: 0 2px 12px rgba(0, 0, 0, 0.6);
@@ -249,10 +271,9 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", monospace;
-  --font-display:
-    var(--font-funnel-display), var(--font-geist-sans), system-ui, sans-serif;
+  --font-sans: var(--font-ibm-plex-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-fira-code), ui-monospace, monospace;
+  --font-geist: var(--font-geist-sans), var(--font-sans);
 
   --radius-sm: 7px;
   --radius-md: 9px;
@@ -268,7 +289,6 @@
   --spacing-lg: 16px;
   --spacing-xl: 24px;
   --spacing-xxl: 32px;
-  --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -352,6 +372,7 @@ html:not(.dark) {
   --minorum-shadow-modal: 0 4px 24px rgba(15, 15, 15, 0.18);
   --shadow-floating: var(--minorum-shadow-floating);
   --shadow-modal: var(--minorum-shadow-modal);
+  --scrollbar-thumb: #b8b8b8;
 }
 
 @layer base {
@@ -363,6 +384,13 @@ html:not(.dark) {
   }
   html {
     @apply font-sans;
+  }
+
+  /* Geist — greeting, user name, Minorum wordmark. */
+  .font-geist {
+    font-family: var(--font-geist);
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 
   /* Consistent keyboard focus ring for every custom interactive element.
@@ -388,12 +416,11 @@ html:not(.dark) {
   }
 }
 
-/* Scroll — tetap bisa scroll, scrollbar tidak ditampilkan */
+/* Scroll — hidden by default; .chat-scroll & .scrollbar-soft show thin thumb */
 .overflow-y-auto,
 .overflow-auto,
 .overflow-y-scroll,
 .overflow-scroll,
-.chat-scroll,
 .scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -403,9 +430,50 @@ html:not(.dark) {
 .overflow-auto::-webkit-scrollbar,
 .overflow-y-scroll::-webkit-scrollbar,
 .overflow-scroll::-webkit-scrollbar,
-.chat-scroll::-webkit-scrollbar,
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* Soft scrollbar — chat pane (replaces bare overflow-y-auto on this node) */
+.chat-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scrollbar-soft {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chat-scroll::-webkit-scrollbar,
+.scrollbar-soft::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+  height: 6px;
+}
+
+.chat-scroll::-webkit-scrollbar-thumb,
+.scrollbar-soft::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--scrollbar-thumb);
+}
+
+.chat-scroll::-webkit-scrollbar-track,
+.scrollbar-soft::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html:not(.dark) .chat-scroll,
+html:not(.dark) .scrollbar-soft {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+html:not(.dark) .chat-scroll::-webkit-scrollbar-thumb,
+html:not(.dark) .scrollbar-soft::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
 }
 
 @keyframes typing-wave {
@@ -447,15 +515,11 @@ html:not(.dark) {
   height: 6px;
   border-radius: 9999px;
   background-color: var(--color-text-primary);
-  opacity: 0.35;
+  opacity: var(--typing-dot-opacity);
   animation-name: typing-wave;
   animation-duration: 1.4s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
-}
-
-.dark .typing-indicator-dot {
-  opacity: 0.55;
 }
 
 .typing-indicator-dot:nth-child(1) {
@@ -628,8 +692,9 @@ html:not(.dark) {
     -webkit-overflow-scrolling: touch;
   }
 
-  .verminal-code__pre {
-    font-size: 13px;
+  .verminal-code__pre,
+  .verminal-code .hljs {
+    font-size: 14px;
     -webkit-overflow-scrolling: touch;
   }
 }
@@ -653,10 +718,29 @@ html:not(.dark) {
     line-height: var(--text-label-small-line-height);
   }
 
+  .text-token-caption {
+    font-size: var(--text-caption-size);
+    font-weight: var(--text-caption-weight);
+    letter-spacing: var(--text-caption-tracking);
+    line-height: 1.35;
+  }
+
+  .text-token-micro {
+    font-size: var(--text-micro-size);
+    line-height: 1.25;
+  }
+
   .text-token-title {
     font-size: var(--text-title-small-size);
     font-weight: var(--text-title-small-weight);
     line-height: var(--text-title-small-line-height);
+  }
+
+  .text-title-large {
+    font-size: var(--text-title-large-size);
+    font-weight: var(--text-title-large-weight);
+    line-height: var(--text-title-large-line-height);
+    letter-spacing: var(--text-title-large-letter-spacing);
   }
 
   .rounded-token {
@@ -689,6 +773,124 @@ html:not(.dark) {
 
   .scroll-pb-chat-message-gap {
     scroll-padding-bottom: var(--chat-message-gap);
+  }
+
+  .py-composer-text {
+    padding-block: var(--composer-text-padding-y);
+  }
+
+  .px-bubble {
+    padding-inline: var(--bubble-padding-x);
+  }
+
+  .py-bubble {
+    padding-block: var(--bubble-padding-y);
+  }
+
+  .gap-stack-md {
+    gap: var(--stack-gap-md);
+  }
+
+  .gap-stack-sm {
+    gap: var(--stack-gap-sm);
+  }
+
+  .h-control-compact {
+    height: var(--control-height-compact);
+  }
+
+  .h-control-xs {
+    height: var(--control-height-xs);
+  }
+
+  .h-control-medium {
+    height: var(--control-height-medium);
+  }
+
+  .h-control-2xs {
+    height: var(--control-height-2xs);
+  }
+
+  .size-control-compact {
+    width: var(--control-height-compact);
+    height: var(--control-height-compact);
+  }
+
+  .size-control-xs {
+    width: var(--control-height-xs);
+    height: var(--control-height-xs);
+  }
+
+  .size-control-medium {
+    width: var(--control-height-medium);
+    height: var(--control-height-medium);
+  }
+
+  .size-control-2xs {
+    width: var(--control-height-2xs);
+    height: var(--control-height-2xs);
+  }
+
+  .size-icon-touch {
+    width: var(--icon-button-size);
+    height: var(--icon-button-size);
+  }
+
+  .size-avatar-sm {
+    width: var(--avatar-size-sm);
+    height: var(--avatar-size-sm);
+  }
+
+  .w-sidebar {
+    width: var(--sidebar-width);
+  }
+
+  .icon-btn-responsive {
+    width: var(--icon-button-size);
+    height: var(--icon-button-size);
+  }
+
+  @media (min-width: 768px) {
+    .icon-btn-responsive {
+      width: var(--control-height-xs);
+      height: var(--control-height-xs);
+    }
+  }
+
+  .px-sidebar {
+    padding-inline: var(--spacing-sm);
+  }
+
+  .py-sidebar-scroll {
+    padding-block: var(--spacing-md);
+  }
+
+  .py-sidebar-item {
+    padding-block: var(--spacing-sm);
+  }
+
+  .p-sidebar-footer {
+    padding: var(--spacing-sm);
+  }
+
+  .p-panel {
+    padding: var(--spacing-lg);
+  }
+
+  .gap-panel {
+    gap: var(--spacing-lg);
+  }
+
+  .gap-inline {
+    gap: var(--spacing-sm);
+  }
+
+  .gap-inline-xs {
+    gap: var(--spacing-xs);
+  }
+
+  .gap-inline-2xs {
+    gap: var(--spacing-2xs);
   }
 
   .px-composer {
@@ -803,7 +1005,7 @@ html:not(.dark) {
     flex: 1;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: var(--spacing-sm);
     border-radius: var(--radius-sm);
     border: 1px solid var(--color-border-subtle);
     font-size: var(--text-body-medium-size);
@@ -866,7 +1068,7 @@ html:not(.dark) {
     border-radius: var(--radius-standard);
     border: 1px solid var(--color-border-subtle);
     background-color: var(--color-composer);
-    padding: 6px 12px;
+    padding: var(--spacing-sm) var(--spacing-md);
     text-align: left;
     font-size: var(--text-body-medium-size);
     line-height: var(--text-body-medium-line-height);
